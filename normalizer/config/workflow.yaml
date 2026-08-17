@@ -1,0 +1,7 @@
+pipeline:
+  - name: "カメラ画像撮影"
+    adapter: "camera_adapter.camera_adapter.CameraAdapter"
+    action: "capture"
+    params:
+      resolution: [640, 480]
+  

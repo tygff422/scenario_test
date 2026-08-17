@@ -1,0 +1,32 @@
+[project]
+name = "scenario-test"
+version = "0.1.0"
+requires-python = "~=3.11.0"
+dependencies = [
+    "orchestrator",
+    "usb-camera-adapter",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = [
+    "orchestrator",
+    "adapters/usb_camera_adapter",
+    "adapters/core",
+]
+
+[tool.uv.sources]
+orchestrator = { workspace = true }
+usb-camera-adapter = { workspace = true }
+
+[tool.pytest.ini_options]
+markers = [
+    "hardware: 実機USBカメラが必要なテスト（デフォルトでは除外: -m \"not hardware\"）",
+]
