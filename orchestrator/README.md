@@ -28,11 +28,15 @@ result = orchestrator.execute()  # デバイス状態を1回チェックしてbo
 パイプライン定義を読み込み、ステップごとに指定されたAdapterクラスを**動的import**して実行する。
 
 ```python
+import asyncio
+
 from orchestrator.orchestrator import GenericOrchestrator
 
 orchestrator = GenericOrchestrator(config_path="normalizer/config/workflow.yaml")
-result = orchestrator.execute_pipeline()  # 全ステップ成功でTrue
+result = asyncio.run(orchestrator.execute_pipeline())  # 全ステップ成功でTrue
 ```
+
+`execute_pipeline()`はasync（Step5で非同期化済み）。`setup()`/`teardown()`（`with`構文）はsyncのままで、`execute_step()`だけが`await`対象。`BaseAdapter`を実装する側も`execute_step`を`async def`にする必要がある。
 
 #### workflow.yamlの書式
 

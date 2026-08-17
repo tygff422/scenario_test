@@ -25,34 +25,43 @@ PlantUML風シナリオ
 
 ---
 
-# 0. 現状ステータス（2026-08-12 時点）
+# 0. 現状ステータス（2026-08-17 時点）
 
 ## 実装状況
 
-Phase1〜4（仮想LED・Fakeベースの基礎練習）を飛ばして、Phase5・6・8相当（Orchestrator/設定駆動パイプライン/USBカメラ）に先行着手した状態から、Step0〜Step4まで進みました。詳細な経緯は[01_docs/decisions/](decisions/)を参照してください。
+Phase1〜4（仮想LED・Fakeベースの基礎練習）を飛ばして、Phase5・6・8相当（Orchestrator/設定駆動パイプライン/USBカメラ）に先行着手した状態から、Step0〜Step5まで完了しました。詳細な経緯は[01_docs/decisions/](decisions/)を参照してください。
 
 ```text
 実装済み:
 - adapter_core.baseadapter.BaseAdapter (adapters/core/)
-    独立ワークスペースパッケージとして切り出し済み
+    独立ワークスペースパッケージとして切り出し済み。execute_stepはasync（Step5）
 - orchestrator.orchestrator.Orchestrator / GenericOrchestrator (orchestrator/src/orchestrator/)
-    Orchestrator: CameraAdapterを使った具体的なOrchestrator
+    Orchestrator: CameraAdapterを使った具体的なOrchestrator（sync、デモ用のまま）
     GenericOrchestrator: workflow.yamlからパイプラインを読み込み、動的importで実行する汎用版
+    execute_pipelineはasync（setup/teardownはsyncのまま、execute_stepだけawait）
 - CameraAdapter / CameraController (adapters/usb_camera_adapter/)
     OpenCVベースの実カメラ制御、ROIによるLED点灯判定。config/camera_controller両対応の初期化
+    execute_stepはasync、OpenCV呼び出しはasyncio.to_threadで分離
 - CameraMockController (adapters/usb_camera_adapter/tests/test_support/)
     Fakeによるテスト用実装
 - normalizer/config/workflow.yaml
-    パイプライン定義のYAML（adapter/action/params）
-- テスト
-    orchestrator/tests/test_orchestrator.py（Mock使用、3件PASS）
-    adapters/usb_camera_adapter/tests/test_camera_adapter.py（Fake使用、3件中2件PASS）
-    integrationtest/test_dynamic_import.py（短い形式のimportで実機経由、PASS）
+    パイプライン定義のYAML（adapter/action/params）。今のところ1ステップのみ
+- テスト（pytest -m "not hardware" で 14 passed, 2 deselected）
+    orchestrator/tests/test_orchestrator.py（Mock使用）
+    orchestrator/tests/test_generic_orchestrator.py（Fake使用、非同期化対応済み）
+    adapters/usb_camera_adapter/tests/test_camera_adapter.py（Fake使用）
+    integrationtest/（実機必要分は@pytest.mark.hardwareで分離）
 - orchestrator/main.py（実機での一連の動作を確認済み、exit code 0）
+- Git/GitHub運用
+    ルート（本リポジトリ）: https://github.com/tygff422/scenario_test （push済み）
+    adapters/usb_camera_adapter: 別GitHubリポジトリ https://github.com/tygff422/UsbCameraController で独立管理
+    （そちらへの直近実装分の反映はまだ未push）
+- フォルダ構成の棚卸し・整理（.python-version統一、不要main.py/egg-info削除等、
+  [07_folder_structure_cleanup.md](decisions/07_folder_structure_cleanup.md)）
 
 未着手:
 - Phase1, 2, 4（仮想LED, Fake中心の基礎練習）
-- Phase6（PlantUML -> DSL変換, converter.py）
+- Phase6（PlantUML -> DSL変換, converter.py。方針は決定済み → [08](decisions/08_plantuml_conversion_design_policy.md)）
 - Phase7（ファイルController, ローカルHTTP Controller, FakeSerial）
 - Phase9（registry.py, context.py, 総合演習としての最終統合）
 ```
@@ -83,30 +92,41 @@ Step 3  ドキュメント整理（資料まとめ・更新）        ✅ 完了
 Step 4  インターフェース健全化                     ✅ 完了
          - interfaces.py のシグネチャを実装に合わせて修正済み
          - CameraAdapter が config / camera_controller 両対応に統一済み
-Step 5  非同期化（学習計画Phase4/7相当）           ⬜ 未着手
-Step 6  PlantUML -> DSL 変換（学習計画Phase6相当） ⬜ 未着手
+Step 5  非同期化（学習計画Phase4/7相当）           ✅ 完了
+         - 学習計画14-4の方針通り、境界は`execute_step`のみ
+           （`GenericOrchestrator.execute_pipeline`と`BaseAdapter.execute_step`をasync化、
+           `setup`/`teardown`はsyncのまま）
+         - `CameraAdapter.execute_step`はOpenCVのブロッキング呼び出しを
+           `asyncio.to_thread`で分離
+         - デモ用`Orchestrator`（CameraAdapter固定クラス）は対象外のまま維持（方針として決定）
+         - 詳細は[09_async_execute_step.md](decisions/09_async_execute_step.md)参照
+Step 6  PlantUML -> DSL 変換（学習計画Phase6相当） ⬜ 未着手（方針は決定済み、[08_plantuml_conversion_design_policy.md](decisions/08_plantuml_conversion_design_policy.md)参照）
 Step 7  最終統合・リファクタリング（学習計画Phase9相当） ⬜ 未着手
 ```
 
 ## ロードマップ外で追加的に決定・実施した事項
 
-作業中に発見し、都度判断して完了させたもの（詳細は[01_docs/decisions/03_package_settings_adapter_orchestrator.md](decisions/03_package_settings_adapter_orchestrator.md)参照）：
+作業中に発見し、都度判断して完了させたもの：
 
-- `BaseAdapter`を`adapter-core`という独立ワークスペースパッケージへ切り出し
-- `orchestrator`のimport規約統一（`packages=["src"]` → `["src/orchestrator"]`）
-- `test_support`を`src/`から`tests/`へ移動（配布境界の是正）
-- `orchestrator/main.py`の壊れたimportを短い形式へ修正、実機で動作確認
-- `img/`フォルダ誤生成の原因究明と修正（テスト副作用防止・パス堅牢化・`.gitignore`追加）
+- `BaseAdapter`を`adapter-core`という独立ワークスペースパッケージへ切り出し（[03](decisions/03_package_settings_adapter_orchestrator.md)）
+- `orchestrator`のimport規約統一（`packages=["src"]` → `["src/orchestrator"]`、[03](decisions/03_package_settings_adapter_orchestrator.md)）
+- `test_support`を`src/`から`tests/`へ移動（配布境界の是正、[03](decisions/03_package_settings_adapter_orchestrator.md)）
+- `orchestrator/main.py`の壊れたimportを短い形式へ修正、実機で動作確認（[04](decisions/04_urgent_fix_camera_pipeline.md)）
+- `img/`フォルダ誤生成の原因究明と修正（テスト副作用防止・パス堅牢化・`.gitignore`追加、[03](decisions/03_package_settings_adapter_orchestrator.md)）
 - ドキュメント構成の確定（`doc` → `docs` → `01_docs`、`decisions/`のNN命名・ADR形式運用ルール確立）
-- 権限運用の整備（CLAUDE.md更新＋`.claude/settings.json`作成）
+- 権限運用の整備（CLAUDE.md更新＋`.claude/settings.json`作成、[05](decisions/05_permission_prompt_reduction.md)）
+- `workflow.yaml`の使い方・パラメータの渡り方をガイド化（[06](decisions/06_workflow_yaml_usage.md)）
+- フォルダ構成全体の棚卸しと6件の掃除（[07](decisions/07_folder_structure_cleanup.md)）
+- ルートリポジトリのGit初期化・GitHub連携（`https://github.com/tygff422/scenario_test`）
+- PlantUML変換（Step6）の設計方針決定（[08](decisions/08_plantuml_conversion_design_policy.md)）
 
 ## 現時点で残っている未完了タスク
 
-（2026-08-13時点で更新。旧1〜4は全て対応済みのため消し込み）
+（2026-08-17時点で更新。Step0〜5は全て対応済みのため消し込み）
 
-1. `pytest`を本番`dependencies`から開発用`[dependency-groups] dev`へ分離 ✅完了
-   （root/orchestrator/usb-camera-adapterの3つのpyproject.tomlを修正、`uv sync`で反映確認済み）
-2. Step5〜7（非同期化・PlantUML風DSL変換・最終統合）
+1. Step6：`normalizer/`のパッケージ化 + `converter.py`実装（方針は[08](decisions/08_plantuml_conversion_design_policy.md)で決定済み） ← 次はこれ
+2. Step7：`registry.py`/`context.py`等の最終統合
+3. `adapters/usb_camera_adapter`（別GitHubリポジトリ）側に、直近のsrc/tests実装がまだpushされていない
 
 ---
 

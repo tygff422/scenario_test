@@ -52,8 +52,11 @@ class GenericOrchestrator:
             )
         return cls
 
-    def execute_pipeline(self) -> bool:
-        """YAML に定義されたステップを順番に実行する"""
+    async def execute_pipeline(self) -> bool:
+        """YAML に定義されたステップを順番に実行する
+
+        setup/teardown（with構文）はsyncのまま。execute_stepだけawaitする。
+        """
         try:
             with open(self.config_path, "r", encoding="utf-8") as f:
                 config = yaml.safe_load(f)
@@ -79,7 +82,7 @@ class GenericOrchestrator:
 
                 # 2. BaseAdapter に集約した with 構文（setup / teardown）を利用して安全に実行！
                 with adapter:
-                    result = adapter.execute_step(action=action, params=params)
+                    result = await adapter.execute_step(action=action, params=params)
                     logger.info(f"[{step_name}] 実行結果: {result}")
 
             except Exception as e:

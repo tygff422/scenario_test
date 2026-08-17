@@ -12,7 +12,7 @@ class BaseAdapter(ABC):
         pass
 
     @abstractmethod
-    def execute_step(self, action: str, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute_step(self, action: str, params: Dict[str, Any]) -> Dict[str, Any]:
         pass
 
     @abstractmethod

@@ -1,3 +1,5 @@
+import asyncio
+
 import pytest
 
 from orchestrator.orchestrator import GenericOrchestrator
@@ -40,7 +42,7 @@ def test_execute_pipeline_success(tmp_path):
     )
 
     orchestrator = GenericOrchestrator(config_path=config_path)
-    result = orchestrator.execute_pipeline()
+    result = asyncio.run(orchestrator.execute_pipeline())
 
     assert result is True
     assert FakePipelineAdapter.events == ["setup", "execute:do_something", "teardown"]
@@ -66,7 +68,7 @@ def test_execute_pipeline_multiple_steps_runs_in_order(tmp_path):
     )
 
     orchestrator = GenericOrchestrator(config_path=config_path)
-    result = orchestrator.execute_pipeline()
+    result = asyncio.run(orchestrator.execute_pipeline())
 
     assert result is True
     assert FakePipelineAdapter.events == [
@@ -93,7 +95,7 @@ def test_execute_pipeline_setup_failure_stops_and_returns_false(tmp_path):
     )
 
     orchestrator = GenericOrchestrator(config_path=config_path)
-    result = orchestrator.execute_pipeline()
+    result = asyncio.run(orchestrator.execute_pipeline())
 
     assert result is False
     # setup()はBaseAdapter.__enter__内で例外化されるため、execute_stepまで到達しない
@@ -114,7 +116,7 @@ def test_execute_pipeline_execute_step_raises_returns_false_but_teardown_runs(tm
     )
 
     orchestrator = GenericOrchestrator(config_path=config_path)
-    result = orchestrator.execute_pipeline()
+    result = asyncio.run(orchestrator.execute_pipeline())
 
     assert result is False
     # with構文の中で例外が起きるので、teardown（__exit__）までは実行される
@@ -135,7 +137,7 @@ def test_execute_pipeline_adapter_not_subclass_of_base_adapter_returns_false(tmp
     )
 
     orchestrator = GenericOrchestrator(config_path=config_path)
-    result = orchestrator.execute_pipeline()
+    result = asyncio.run(orchestrator.execute_pipeline())
 
     assert result is False
 
@@ -144,7 +146,7 @@ def test_execute_pipeline_missing_yaml_file_returns_false(tmp_path):
     missing_path = str(tmp_path / "does_not_exist.yaml")
 
     orchestrator = GenericOrchestrator(config_path=missing_path)
-    result = orchestrator.execute_pipeline()
+    result = asyncio.run(orchestrator.execute_pipeline())
 
     assert result is False
 
@@ -153,7 +155,7 @@ def test_execute_pipeline_empty_pipeline_returns_true(tmp_path):
     config_path = write_workflow(tmp_path, [])
 
     orchestrator = GenericOrchestrator(config_path=config_path)
-    result = orchestrator.execute_pipeline()
+    result = asyncio.run(orchestrator.execute_pipeline())
 
     assert result is True
     assert FakePipelineAdapter.events == []

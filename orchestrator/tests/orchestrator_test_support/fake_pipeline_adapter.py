@@ -24,7 +24,7 @@ class FakePipelineAdapter(BaseAdapter):
         FakePipelineAdapter.events.append("setup")
         return not self.config.get("setup_should_fail", False)
 
-    def execute_step(self, action: str, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute_step(self, action: str, params: Dict[str, Any]) -> Dict[str, Any]:
         FakePipelineAdapter.events.append(f"execute:{action}")
         if params.get("execute_should_raise", False):
             raise RuntimeError("FakePipelineAdapter: 意図的なexecute_step失敗")
