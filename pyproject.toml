@@ -5,6 +5,7 @@ requires-python = "~=3.11.0"
 dependencies = [
     "orchestrator",
     "usb-camera-adapter",
+    "normalizer",
 ]
 
 [dependency-groups]
@@ -20,11 +21,13 @@ members = [
     "orchestrator",
     "adapters/usb_camera_adapter",
     "adapters/core",
+    "normalizer",
 ]
 
 [tool.uv.sources]
 orchestrator = { workspace = true }
 usb-camera-adapter = { workspace = true }
+normalizer = { workspace = true }
 
 [tool.pytest.ini_options]
 markers = [

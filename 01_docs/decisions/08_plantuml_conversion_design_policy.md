@@ -70,10 +70,43 @@ def convert(plantuml_text: str) -> list[dict]:
 
 | # | 論点 |
 |---|---|
-| 1 | PlantUMLの「接続」「切断」見出し行をconverterでどう扱うか（マッピング対象外にする／no-opとして許容する） |
 | 2 | converterの出力をファイルに書き出すか、メモリ上のdictを直接`GenericOrchestrator`へ渡すか（現状はファイルパスしか受け取れない制約がある） |
-| 3 | マッピング辞書の置き場所（Pythonのdict直書きのままか、別途YAML/JSON化するか） |
 | 4 | 同一Adapterインスタンスを複数アクションで使い回す仕組み（`steps`ネスト導入）をいつ着手するか |
+
+## 決定事項の追記（2026-08-17、実装完了）
+
+### 1. 「接続」「切断」見出し行の扱い：無視リスト方式（案A）を採用
+
+`lifecycle_labels`（後述のmapping.yaml内）に列挙した見出しは、`convert()`内で読み飛ばす（パイプラインに追加しない）。setup/teardownが暗黙に処理するため。
+
+### 3. マッピング辞書の置き場所：YAML外出しを採用
+
+当初`converter.py`内にPythonのdict/setとして直書きしていたが、「PlantUMLの変換ルールは設定として外に出したい」という当初構想に立ち返り、`normalizer/config/mapping.yaml`に外出しした。
+
+```yaml
+lifecycle_labels:
+  - "カメラ接続"
+  - "カメラ切断"
+
+action_mapping:
+  "カメラ画像撮影":
+    adapter: "camera_adapter.camera_adapter.CameraAdapter"
+    action: "capture"
+    params:
+      resolution: [640, 480]
+```
+
+`converter.py`は`load_mapping(path) -> (lifecycle_labels, action_mapping)`（YAMLを読むI/O）と`convert(plantuml_text, lifecycle_labels, action_mapping) -> list[dict]`（変換ロジック本体、純粋関数）に分離した。`convert()`のユニットテストは本番`mapping.yaml`に依存しない自前の小さなルールを使い、`load_mapping()`は実ファイルを読む専用テストで検証する。
+
+### 全体像の整理（当初の想定とのズレを解消）
+
+「`workflow.yaml`にPlantUMLの変換ルールを書く」という当初のイメージと、「`workflow.yaml`は実行フロー（IRの出力）そのもの」という実装がズレていたため、ファイルの役割を明確化した。
+
+```text
+①mapping.yaml（変換ルール、人が編集） ─┐
+                                       ├─▶ convert() ─▶ ③workflow.yaml相当のdict
+②PlantUMLテキスト ─────────────────────┘        （将来的にはこれが自動生成の出力になる。今は③はまだ手書きのまま）
+```
 
 ## 「同一Adapterインスタンスを複数アクションで使い回す」問題の詳細（設計メモ）
 

@@ -1,0 +1,19 @@
+# PlantUMLのラベル -> 実行フロー(workflow.yaml相当)への変換ルール
+#
+# lifecycle_labels: 読み飛ばす見出し（connect/disconnect相当）。
+#   setup()/teardown()が暗黙に処理するため、パイプラインには追加しない。
+#   詳細: 01_docs/decisions/06_workflow_yaml_usage.md
+#
+# action_mapping: 実際にexecute_stepとして実行する見出し。
+#   値はworkflow.yamlのpipeline要素と同じ形（adapter/action/params）。
+
+lifecycle_labels:
+  - "カメラ接続"
+  - "カメラ切断"
+
+action_mapping:
+  "カメラ画像撮影":
+    adapter: "camera_adapter.camera_adapter.CameraAdapter"
+    action: "capture"
+    params:
+      resolution: [640, 480]

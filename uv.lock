@@ -5,6 +5,7 @@ requires-python = "==3.11.*"
 [manifest]
 members = [
     "adapter-core",
+    "normalizer",
     "orchestrator",
     "scenario-test",
     "usb-camera-adapter",
@@ -51,6 +52,25 @@ sdist = { url = "https://files.pythonhosted.org/packages/3a/05/a1dae3dffd1116099
 wheels = [
     { url = "https://files.pythonhosted.org/packages/0c/29/0348de65b8cc732daa3e33e67806420b2ae89bdce2b04af740289c5c6c8c/loguru-0.7.3-py3-none-any.whl", hash = "sha256:31a33c10c8e1e10422bfd431aeb5d351c7cf7fa671e3c4df004162264b28220c", size = 61595, upload-time = "2024-12-06T11:20:54.538Z" },
 ]
+
+[[package]]
+name = "normalizer"
+version = "0.1.0"
+source = { editable = "normalizer" }
+dependencies = [
+    { name = "pyyaml" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "pyyaml", specifier = ">=6.0.3" }]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=9.1.1" }]
 
 [[package]]
 name = "numpy"
@@ -189,6 +209,7 @@ name = "scenario-test"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "normalizer" },
     { name = "orchestrator" },
     { name = "usb-camera-adapter" },
 ]
@@ -200,6 +221,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "normalizer", editable = "normalizer" },
     { name = "orchestrator", editable = "orchestrator" },
     { name = "usb-camera-adapter", editable = "adapters/usb_camera_adapter" },
 ]
