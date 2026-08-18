@@ -36,7 +36,10 @@ from adapter_core.baseadapter import BaseAdapter
 
 class GenericOrchestrator:
 
-    def __init__(self, config_path: str):
+    def __init__(self, config_path: str | None = None):
+        """config_pathはexecute_pipeline()（YAMLファイル経由）を使う場合のみ必要。
+        既にパース済みのpipelineを直接渡すexecute()を使う場合は不要。
+        """
         self.config_path = config_path
 
     def _load_adapter(self, class_path: str) -> Type[BaseAdapter]:
@@ -53,10 +56,14 @@ class GenericOrchestrator:
         return cls
 
     async def execute_pipeline(self) -> bool:
-        """YAML に定義されたステップを順番に実行する
+        """self.config_pathのYAMLファイルを読み込んでから実行する（従来の外部インターフェース）。
 
-        setup/teardown（with構文）はsyncのまま。execute_stepだけawaitする。
+        ファイルを読む部分だけをここに残し、実行ロジック本体はexecute()に委譲する。
         """
+        if self.config_path is None:
+            logger.error("execute_pipeline()の呼び出しにはconfig_pathの指定が必要です。")
+            return False
+
         try:
             with open(self.config_path, "r", encoding="utf-8") as f:
                 config = yaml.safe_load(f)
@@ -65,6 +72,14 @@ class GenericOrchestrator:
             return False
 
         pipeline = config.get("pipeline", [])
+        return await self.execute(pipeline)
+
+    async def execute(self, pipeline: list[dict]) -> bool:
+        """既にパース済みのpipeline（list[dict]）を直接実行する。
+
+        normalizer.converter.convert()の戻り値をそのまま渡せる（ファイル書き出し不要）。
+        setup/teardown（with構文）はsyncのまま。execute_stepだけawaitする。
+        """
         logger.info(f"パイプライン実行開始 (全 {len(pipeline)} ステップ)")
 
         for step_info in pipeline:

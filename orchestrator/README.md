@@ -38,6 +38,26 @@ result = asyncio.run(orchestrator.execute_pipeline())  # 全ステップ成功�
 
 `execute_pipeline()`はasync（Step5で非同期化済み）。`setup()`/`teardown()`（`with`構文）はsyncのままで、`execute_step()`だけが`await`対象。`BaseAdapter`を実装する側も`execute_step`を`async def`にする必要がある。
 
+### 既にパース済みのpipelineを直接渡す：`execute()`
+
+`execute_pipeline()`はYAMLファイルを読む前提だが、`normalizer.converter.convert()`のようにメモリ上で
+`list[dict]`を作った場合は、ファイルに書き出さず直接`execute()`へ渡せる（Step6、[08](../01_docs/decisions/08_plantuml_conversion_design_policy.md)）。
+
+```python
+import asyncio
+
+from normalizer.converter import convert, load_mapping
+from orchestrator.orchestrator import GenericOrchestrator
+
+lifecycle_labels, action_mapping = load_mapping("normalizer/config/mapping.yaml")
+pipeline = convert(plantuml_text, lifecycle_labels, action_mapping)
+
+orchestrator = GenericOrchestrator()  # config_path不要
+result = asyncio.run(orchestrator.execute(pipeline))
+```
+
+`execute_pipeline()`は内部で「YAMLを読む→`execute()`を呼ぶ」だけの薄いラッパーになっている。
+
 #### workflow.yamlの書式
 
 ```yaml

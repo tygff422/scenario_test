@@ -19,7 +19,7 @@
 ・焦って結論を出さない。
 
 ## 現在の進捗
-・完了：Step0〜5（緊急修正/Fakeテスト/E2E/ドキュメント整理/インターフェース健全化/非同期化）
-・実施中：Step6（PlantUML→DSL変換）。normalizer/converter.py・mapping.yaml外出しまで実装済み
-・次のタスク：converter.pyの出力を実行まで繋ぐ配線 → Step7（registry.py/context.py等の最終統合）
+・完了：Step0〜6（緊急修正/Fakeテスト/E2E/ドキュメント整理/インターフェース健全化/非同期化/PlantUML→DSL変換）
+・実施中：なし（Step6完了、Step7未着手）
+・次のタスク：Step7（registry.py/context.py等の最終統合、同一Adapterインスタンスの使い回し対応）
 ・詳細：01_docs/implementation_plan.md 参照

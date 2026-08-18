@@ -109,11 +109,13 @@ Step 5  非同期化（学習計画Phase4/7相当）           ✅ 完了
            `asyncio.to_thread`で分離
          - デモ用`Orchestrator`（CameraAdapter固定クラス）は対象外のまま維持（方針として決定）
          - 詳細は[09_async_execute_step.md](decisions/09_async_execute_step.md)参照
-Step 6  PlantUML -> DSL 変換（学習計画Phase6相当） 🔶 進行中
+Step 6  PlantUML -> DSL 変換（学習計画Phase6相当） ✅ 完了
          - normalizer/converter.py: convert(plantuml_text, lifecycle_labels, action_mapping)
            を純粋関数として実装（ファイルI/O無し）
          - 変換ルールはnormalizer/config/mapping.yamlに外出し、load_mapping()で読込
-         - 残り：converter.pyの出力を実際にworkflow.yaml書き出し/実行まで繋ぐ配線
+         - GenericOrchestratorを「YAML読込(execute_pipeline)」と「pipeline実行(execute)」に分割し、
+           convert()の出力をファイル書き出し無しで直接実行できるように
+         - integrationtest/test_plantuml_to_execution.py で通し（PlantUML→変換→実行）を検証
          - 詳細は[08_plantuml_conversion_design_policy.md](decisions/08_plantuml_conversion_design_policy.md)参照
 Step 7  最終統合・リファクタリング（学習計画Phase9相当） ⬜ 未着手
 ```
@@ -136,12 +138,11 @@ Step 7  最終統合・リファクタリング（学習計画Phase9相当） �
 
 ## 現時点で残っている未完了タスク
 
-（2026-08-17時点で更新）
+（2026-08-17時点で更新。Step0〜6は全て対応済みのため消し込み）
 
-1. Step6の残り：`converter.py`の出力を実際に実行まで繋ぐ配線（[08](decisions/08_plantuml_conversion_design_policy.md)未確定事項2） ← 次はこれ
-2. Step7：`registry.py`/`context.py`等の最終統合、同一Adapterインスタンスを複数アクションで
-   使い回す仕組み（[06](decisions/06_workflow_yaml_usage.md)の既知の制約）
-3. `adapters/usb_camera_adapter`（別GitHubリポジトリ）側に、直近のsrc/tests実装がまだpushされていない
+1. Step7：`registry.py`/`context.py`等の最終統合、同一Adapterインスタンスを複数アクションで
+   使い回す仕組み（[06](decisions/06_workflow_yaml_usage.md)の既知の制約） ← 次はこれ
+2. `adapters/usb_camera_adapter`（別GitHubリポジトリ）側に、直近のsrc/tests実装がまだpushされていない
 
 ---
 

@@ -159,3 +159,33 @@ def test_execute_pipeline_empty_pipeline_returns_true(tmp_path):
 
     assert result is True
     assert FakePipelineAdapter.events == []
+
+
+# --- execute(): 既にパース済みのpipeline(list[dict])を直接渡すインターフェース ---
+# normalizer.converter.convert()の戻り値をそのまま渡せることを想定している。
+
+
+def test_execute_accepts_pipeline_list_directly_without_config_path():
+    # config_pathを渡さずに構築できる（execute()はファイルを一切読まない）
+    orchestrator = GenericOrchestrator()
+
+    pipeline = [
+        {
+            "name": "Fake成功ステップ",
+            "adapter": FAKE_ADAPTER_PATH,
+            "action": "do_something",
+            "params": {},
+        }
+    ]
+
+    result = asyncio.run(orchestrator.execute(pipeline))
+
+    assert result is True
+    assert FakePipelineAdapter.events == ["setup", "execute:do_something", "teardown"]
+
+
+def test_execute_pipeline_without_config_path_returns_false():
+    orchestrator = GenericOrchestrator()
+    result = asyncio.run(orchestrator.execute_pipeline())
+
+    assert result is False

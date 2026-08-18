@@ -70,8 +70,31 @@ def convert(plantuml_text: str) -> list[dict]:
 
 | # | 論点 |
 |---|---|
-| 2 | converterの出力をファイルに書き出すか、メモリ上のdictを直接`GenericOrchestrator`へ渡すか（現状はファイルパスしか受け取れない制約がある） |
 | 4 | 同一Adapterインスタンスを複数アクションで使い回す仕組み（`steps`ネスト導入）をいつ着手するか |
+
+## 決定事項の追記2（2026-08-17、Step6完了）
+
+### 2. converterの出力の渡し方：メモリ直渡し（`execute()`）を採用
+
+`GenericOrchestrator`を「YAMLファイルを読む部分」と「pipelineを実行する部分」に分割した。
+
+```python
+async def execute_pipeline(self) -> bool:
+    """self.config_pathを読んでからexecute()を呼ぶ薄いラッパー（従来の外部インターフェース）"""
+    ...
+    pipeline = config.get("pipeline", [])
+    return await self.execute(pipeline)
+
+async def execute(self, pipeline: list[dict]) -> bool:
+    """既にパース済みのpipelineを直接実行する。convert()の戻り値をそのまま渡せる"""
+    ...
+```
+
+`config_path`は`__init__(self, config_path: str | None = None)`でオプショナル化し、`execute()`だけを使う場合はファイルパス自体が不要になった。`converter.py`と同じ「I/Oと純粋ロジックを分離する」設計をOrchestrator側にも揃えた形。
+
+`integrationtest/test_plantuml_to_execution.py`に、PlantUMLテキスト→`convert()`→`GenericOrchestrator.execute()`の一連の流れを実機なしで検証する統合テストを追加した（このテスト専用の軽量なFakeAdapterをテストファイル内に定義。`orchestrator_test_support`はorchestrator/tests/配下でしかimportできないため）。
+
+これでStep6（PlantUML→pipeline変換→実行）の主要な配線は完了。残るのは未確定4（同一Adapterインスタンスの使い回し）のみで、これはStep7の範囲。
 
 ## 決定事項の追記（2026-08-17、実装完了）
 
