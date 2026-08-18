@@ -1,7 +1,7 @@
 # 06_workflow_yaml_usage
 
-- 日付: 2026-08-13
-- 関連: [03_package_settings_adapter_orchestrator.md](03_package_settings_adapter_orchestrator.md)（GenericOrchestratorの依存関係）・[04_urgent_fix_camera_pipeline.md](04_urgent_fix_camera_pipeline.md)（`adapter`キー名を確定した経緯）・[orchestrator/README.md](../../orchestrator/README.md)（実行手順の要約）
+- 日付: 2026-08-13（2026-08-17: Step5の非同期化を反映して一部更新）
+- 関連: [03_package_settings_adapter_orchestrator.md](03_package_settings_adapter_orchestrator.md)（GenericOrchestratorの依存関係）・[04_urgent_fix_camera_pipeline.md](04_urgent_fix_camera_pipeline.md)（`adapter`キー名を確定した経緯）・[09_async_execute_step.md](09_async_execute_step.md)（execute_stepの非同期化）・[orchestrator/README.md](../../orchestrator/README.md)（実行手順の要約）
 - 位置づけ: `normalizer/config/workflow.yaml`の書き方・値の渡り方・Adapterのライフサイクルとの対応関係をまとめた使い方ガイド。新しいAdapterを追加する人向けのリファレンス。
 
 ## 1. 基本構造
@@ -50,14 +50,16 @@ def execute_step(self, action, params):
 ```text
 cls(config=params) でインスタンス生成
   ↓
-with adapter:                     ← BaseAdapter.__enter__
-    setup() が呼ばれる               「接続」+「使える状態か確認」はここに書く
+with adapter:                          ← BaseAdapter.__enter__（sync）
+    setup() が呼ばれる                    「接続」+「使える状態か確認」はここに書く（sync）
     ↓
-    execute_step(action, params)    YAMLで指定した「実際の1アクション」だけをここに書く
+    await execute_step(action, params)   YAMLで指定した「実際の1アクション」だけをここに書く（async）
     ↓
-                                   ← BaseAdapter.__exit__
-    teardown() が呼ばれる            「解放」はここに書く（例外時も必ず呼ばれる）
+                                        ← BaseAdapter.__exit__（sync）
+    teardown() が呼ばれる                 「解放」はここに書く（例外時も必ず呼ばれる、sync）
 ```
+
+**Step5の非同期化（[09](09_async_execute_step.md)）を反映**：`setup()`/`teardown()`はsyncのまま、`execute_step()`だけが`async def`になり、`GenericOrchestrator`側は`await adapter.execute_step(...)`で呼ぶ。新しくAdapterを書く場合、`execute_step`は必ず`async def`で実装する必要がある（`BaseAdapter`の抽象メソッドが`async def`のため）。
 
 **重要**：`connect`・`is_ready確認`・`release`はYAMLの`action`として書かない。これらは`setup()`/`teardown()`の中身として実装し、`with`文（`BaseAdapter.__enter__`/`__exit__`）経由で自動的に呼ばれる。YAMLの`action`に書くのは「setupが終わった後にやりたい実際の仕事」だけでよい。
 
@@ -72,15 +74,20 @@ CameraAdapterの対応：
 ## 4. 新しいAdapterを追加する手順
 
 1. `BaseAdapter`（`adapter_core.baseadapter`）を継承し、`setup()` / `execute_step()` / `teardown()` を実装する
-   - `setup()`：接続 + 使える状態かの確認 → `bool`を返す（`False`なら`with`に入った時点で`RuntimeError`）
-   - `execute_step()`：対応する`action`ごとに分岐。未対応の`action`は`ValueError`を投げる（CameraAdapterに倣う）
-   - `teardown()`：リソース解放。例外は`BaseAdapter.__exit__`側でログに残されるだけで再送出はされない
+   - `setup()`：接続 + 使える状態かの確認 → `bool`を返す（`False`なら`with`に入った時点で`RuntimeError`）。sync
+   - `execute_step()`：**`async def`で実装する**（[09](09_async_execute_step.md)）。対応する`action`ごとに分岐。
+     未対応の`action`は`ValueError`を投げる（CameraAdapterに倣う）。ブロッキングするI/O呼び出し（ファイル・
+     ネットワーク・OpenCV等）は`asyncio.to_thread`で包み、他の非同期処理を止めないようにする
+   - `teardown()`：リソース解放。例外は`BaseAdapter.__exit__`側でログに残されるだけで再送出はされない。sync
 2. 対応する`pyproject.toml`の`[tool.hatch.build.targets.wheel] packages`にモジュールを追加し、ワークスペースへ`uv sync`で反映する（[03](03_package_settings_adapter_orchestrator.md)参照）
 3. `workflow.yaml`の`pipeline`にステップを追記する（`adapter`は短い形式のimportパスで）
 
 ### 例：AudioAdapterを追加する場合
 
 ```python
+import asyncio
+
+
 class AudioAdapter(BaseAdapter):
     def __init__(self, config=None):
         device_id = (config or {}).get("device_id", 0)
@@ -92,9 +99,11 @@ class AudioAdapter(BaseAdapter):
         self._is_ready = self.controller.is_ready()
         return self._is_ready
 
-    def execute_step(self, action, params) -> dict:
+    async def execute_step(self, action, params) -> dict:
         if action == "record":
-            data = self.controller.record(params.get("duration_sec", 3))
+            data = await asyncio.to_thread(
+                self.controller.record, params.get("duration_sec", 3)
+            )
             return {"status": "SUCCESS" if data else "FAILED", "data": data}
         raise ValueError(f"未対応のアクションです: {action}")
 

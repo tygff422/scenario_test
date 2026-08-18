@@ -44,12 +44,20 @@ Phase1〜4（仮想LED・Fakeベースの基礎練習）を飛ばして、Phase5
     execute_stepはasync、OpenCV呼び出しはasyncio.to_threadで分離
 - CameraMockController (adapters/usb_camera_adapter/tests/test_support/)
     Fakeによるテスト用実装
+- normalizer.converter (normalizer/src/normalizer/)
+    PlantUML風テキスト -> workflow.yaml相当のlist[dict]へ変換する純粋関数convert()
+    変換ルール（lifecycle_labels/action_mapping）はconfig/mapping.yamlに外出し、load_mapping()で読込
+    ファイルI/Oは一切行わない（convert()はテキスト受け取りdict列を返すだけ）
 - normalizer/config/workflow.yaml
-    パイプライン定義のYAML（adapter/action/params）。今のところ1ステップのみ
-- テスト（pytest -m "not hardware" で 14 passed, 2 deselected）
+    パイプライン定義のYAML（adapter/action/params）。今のところ1ステップのみ、まだ手書き
+    （converter.pyの出力をここに書き出す/直接渡す配線はまだ未実装、[08](decisions/08_plantuml_conversion_design_policy.md)未確定事項2）
+- normalizer/config/mapping.yaml
+    PlantUMLラベル -> adapter/action/paramsの変換ルール定義
+- テスト（pytest -m "not hardware" で 21 passed, 2 deselected）
     orchestrator/tests/test_orchestrator.py（Mock使用）
     orchestrator/tests/test_generic_orchestrator.py（Fake使用、非同期化対応済み）
     adapters/usb_camera_adapter/tests/test_camera_adapter.py（Fake使用）
+    normalizer/tests/test_converter.py（convert()は自前ルールで、load_mapping()は実mapping.yamlで検証）
     integrationtest/（実機必要分は@pytest.mark.hardwareで分離）
 - orchestrator/main.py（実機での一連の動作を確認済み、exit code 0）
 - Git/GitHub運用
@@ -61,7 +69,8 @@ Phase1〜4（仮想LED・Fakeベースの基礎練習）を飛ばして、Phase5
 
 未着手:
 - Phase1, 2, 4（仮想LED, Fake中心の基礎練習）
-- Phase6（PlantUML -> DSL変換, converter.py。方針は決定済み → [08](decisions/08_plantuml_conversion_design_policy.md)）
+- Phase6の残り：converter.pyの出力を実際にworkflow.yamlへ書き出す/GenericOrchestratorに
+  直接渡す「実行スクリプト」部分（[08](decisions/08_plantuml_conversion_design_policy.md)未確定事項2）
 - Phase7（ファイルController, ローカルHTTP Controller, FakeSerial）
 - Phase9（registry.py, context.py, 総合演習としての最終統合）
 ```
@@ -100,7 +109,12 @@ Step 5  非同期化（学習計画Phase4/7相当）           ✅ 完了
            `asyncio.to_thread`で分離
          - デモ用`Orchestrator`（CameraAdapter固定クラス）は対象外のまま維持（方針として決定）
          - 詳細は[09_async_execute_step.md](decisions/09_async_execute_step.md)参照
-Step 6  PlantUML -> DSL 変換（学習計画Phase6相当） ⬜ 未着手（方針は決定済み、[08_plantuml_conversion_design_policy.md](decisions/08_plantuml_conversion_design_policy.md)参照）
+Step 6  PlantUML -> DSL 変換（学習計画Phase6相当） 🔶 進行中
+         - normalizer/converter.py: convert(plantuml_text, lifecycle_labels, action_mapping)
+           を純粋関数として実装（ファイルI/O無し）
+         - 変換ルールはnormalizer/config/mapping.yamlに外出し、load_mapping()で読込
+         - 残り：converter.pyの出力を実際にworkflow.yaml書き出し/実行まで繋ぐ配線
+         - 詳細は[08_plantuml_conversion_design_policy.md](decisions/08_plantuml_conversion_design_policy.md)参照
 Step 7  最終統合・リファクタリング（学習計画Phase9相当） ⬜ 未着手
 ```
 
@@ -122,10 +136,11 @@ Step 7  最終統合・リファクタリング（学習計画Phase9相当） �
 
 ## 現時点で残っている未完了タスク
 
-（2026-08-17時点で更新。Step0〜5は全て対応済みのため消し込み）
+（2026-08-17時点で更新）
 
-1. Step6：`normalizer/`のパッケージ化 + `converter.py`実装（方針は[08](decisions/08_plantuml_conversion_design_policy.md)で決定済み） ← 次はこれ
-2. Step7：`registry.py`/`context.py`等の最終統合
+1. Step6の残り：`converter.py`の出力を実際に実行まで繋ぐ配線（[08](decisions/08_plantuml_conversion_design_policy.md)未確定事項2） ← 次はこれ
+2. Step7：`registry.py`/`context.py`等の最終統合、同一Adapterインスタンスを複数アクションで
+   使い回す仕組み（[06](decisions/06_workflow_yaml_usage.md)の既知の制約）
 3. `adapters/usb_camera_adapter`（別GitHubリポジトリ）側に、直近のsrc/tests実装がまだpushされていない
 
 ---

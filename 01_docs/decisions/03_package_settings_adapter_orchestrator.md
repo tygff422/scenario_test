@@ -6,22 +6,25 @@
 
 ## 全体依存関係グラフ
 
+（2026-08-17更新：`normalizer`を追加）
+
 ```
                     scenario_test (root)
-                    /                  \
-             orchestrator          usb-camera-adapter
+                 /         |            \
+          orchestrator  normalizer   usb-camera-adapter
                   \                    /
                    \                  /
                     adapter-core（末端・誰にも依存しない）
 ```
 
-非循環（acyclic）な階層構造。`adapter-core`が一番下の共通基盤で、`orchestrator`と`usb-camera-adapter`の両方がそこへ向かって依存する。
+非循環（acyclic）な階層構造。`adapter-core`が一番下の共通基盤で、`orchestrator`と`usb-camera-adapter`の両方がそこへ向かって依存する。`normalizer`は現時点でどのワークスペースメンバーにも依存しない独立した葉（`adapter-core`にも依存しない）。
 
 | パッケージ | 直接依存（外部） | 直接依存（内部・workspace） | 役割 |
 |---|---|---|---|
-| `orchestrator` | loguru, pytest, pyyaml | usb-camera-adapter, adapter-core | シナリオ実行エンジン |
-| `usb-camera-adapter`（別git管理） | loguru, numpy, opencv-python, pytest | adapter-core | USBカメラの実機I/O実装 |
+| `orchestrator` | loguru, pyyaml（dev: pytest） | usb-camera-adapter, adapter-core | シナリオ実行エンジン |
+| `usb-camera-adapter`（別git管理） | loguru, numpy, opencv-python（dev: pytest） | adapter-core | USBカメラの実機I/O実装 |
 | `adapter-core` | loguru | なし（末端） | 全アダプタ共通の抽象基盤（`BaseAdapter`） |
+| `normalizer` | pyyaml（dev: pytest） | なし | PlantUML→pipeline変換（[08](08_plantuml_conversion_design_policy.md)） |
 
 ### なぜ`orchestrator`は2つも内部依存を持つのか
 
@@ -46,6 +49,8 @@ usb-camera-adapter（1つのpyproject.toml = 1つの配布単位）
 
 ## `orchestrator/pyproject.toml`
 
+（2026-08-17更新：`pytest`を`dependency-groups.dev`へ分離した後の状態）
+
 ```toml
 [build-system]
 requires = ["hatchling"]
@@ -57,10 +62,14 @@ version = "0.1.0"
 requires-python = "~=3.11.0"
 dependencies = [
     "loguru>=0.7.3",
-    "pytest>=9.1.1",
     "pyyaml>=6.0.3",
     "usb-camera-adapter",
     "adapter-core",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -90,6 +99,8 @@ adapter-core = { workspace = true }
 
 ## `adapters/usb_camera_adapter/pyproject.toml`
 
+（2026-08-17更新：`pytest`を`dependency-groups.dev`へ分離した後の状態）
+
 ```toml
 [build-system]
 requires = ["hatchling"]
@@ -103,8 +114,12 @@ dependencies = [
     "loguru>=0.7.3",
     "numpy>=2.4.6",
     "opencv-python>=5.0.0.93",
-    "pytest>=9.1.1",
     "adapter-core",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -168,6 +183,32 @@ packages = ["src/adapter_core"]
 ```
 
 `[tool.uv.sources]`が無い。`adapter-core`は他のどのローカルパッケージにも依存していない「末端」だから。**`[tool.uv.sources]`はローカルのworkspaceメンバーに依存する時だけ書けばよい**、という一番分かりやすい実例。
+
+## `normalizer/pyproject.toml`（もう1つの葉。ただし外部依存が1つある例）
+
+```toml
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "normalizer"
+version = "0.1.0"
+requires-python = "~=3.11.0"
+dependencies = [
+    "pyyaml>=6.0.3",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/normalizer"]
+```
+
+`adapter-core`と同じく「末端」（`[tool.uv.sources]`が不要）だが、`adapter-core`が`loguru`のみだったのに対し、`normalizer`は`config/mapping.yaml`を読むために`pyyaml`が要る点が違う。**重要な注意点**：`members`に登録しただけではrootの`dependencies`に依存として現れないため共有venvにインストールされない（[01](01_import_resolution_rules.md)の訂正、[02](02_root_pyproject_settings.md)参照）。`normalizer`はrootの`[project] dependencies`にも明示的に追加している。
 
 ### 決定：`BaseAdapter`を`adapters/baseadapter.py`から独立パッケージへ切り出し
 

@@ -6,15 +6,22 @@
 
 ## 現在の内容
 
+（2026-08-17更新：`pytest`を`dependency-groups.dev`へ分離、`normalizer`を追加した後の状態）
+
 ```toml
 [project]
 name = "scenario-test"
 version = "0.1.0"
 requires-python = "~=3.11.0"
 dependencies = [
-    "pytest>=9.1.1",
     "orchestrator",
     "usb-camera-adapter",
+    "normalizer",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
 ]
 
 [tool.uv]
@@ -25,18 +32,27 @@ members = [
     "orchestrator",
     "adapters/usb_camera_adapter",
     "adapters/core",
+    "normalizer",
 ]
 
 [tool.uv.sources]
 orchestrator = { workspace = true }
 usb-camera-adapter = { workspace = true }
+normalizer = { workspace = true }
 ```
 
-## `[project] dependencies` ── 直接依存だけを書く
+`pytest`は本番`dependencies`ではなく開発用の`[dependency-groups] dev`に分離した（本番の配布物には不要な、開発時にしか使わない依存のため）。
 
-PEP 621標準のフィールド。「このプロジェクトのコードが直接importするもの」だけを書く。間接依存（依存の依存）は書かない。ここに書かれた3つは、root直下の`main.py`や`integrationtest/`が直接触るもの。
+## `[project] dependencies` ── 直接依存だけを書く、が実は「共有venvに入るかどうか」も左右する
 
-**書かないとどうなるか**：[01](01_import_resolution_rules.md)のルール1の通り、ワークスペースメンバーである以上、rootの`dependencies`に書かなくても共有venvにはインストールされる（`adapter-core`はrootのdependenciesに無いが動いている、が実例）。ただし「rootのコードが直接使うもの」を明示するという metadata としての正しさは失われる。rootが直接使わないもの（`adapter-core`）は書かない、というのが今回の判断。
+PEP 621標準のフィールド。「このプロジェクトのコードが直接importするもの」だけを書く。間接依存（依存の依存）は書かない。ここに書かれた3つは、`integrationtest/`や各パッケージのコードが直接触るもの。
+
+**書かないとどうなるか**：ここが当初の理解と違っていたので訂正する（[01](01_import_resolution_rules.md)の追記も参照）。「ワークスペースメンバーに登録さえすれば自動的に共有venvへインストールされる」というのは誤りで、**実際には root から辿れる依存関係のどこかにそのパッケージ名が現れて初めてインストールされる**。
+
+- `adapter-core`がrootの`dependencies`に無くても動いていたのは、`orchestrator`・`usb-camera-adapter`側の`dependencies`に`adapter-core`が書かれていて、それをrootが依存しているために**間接的に**入ってきていたから
+- `normalizer`を`[tool.uv.workspace] members`にだけ追加してrootの`dependencies`には追加し忘れた際、実際に`uv sync`しても`.venv`にインストールされず、`import normalizer`が名前空間パッケージ扱いになって`ModuleNotFoundError`相当の壊れ方をした（2026-08-17に実際に遭遇）
+
+**結論**：rootが直接使わないもの（`adapter-core`）は書かなくてよいが、それは「他の誰かがそれに依存しているから間接的に入る」場合に限る。**どこからも依存されないパッケージは、たとえworkspace membersに登録しても、明示的にどこかのdependenciesへ加えない限りインストールされない**。
 
 ## `[tool.uv] package = false` ── 自分自身は配布物ではないという宣言
 
@@ -54,9 +70,9 @@ root（`scenario_test`）には`[build-system]`が無い。デフォルトのま
 ## `[tool.uv.workspace] members` ── ローカルの兄弟パッケージの登録簿
 
 ここに書かれたパスは「独自の`pyproject.toml`を持つ、ワークスペース内のローカルパッケージ」として扱われる。これにより：
-- 全メンバーの依存関係が1つの`uv.lock`にまとめて解決される
-- 全メンバーが1つの共有`.venv`にeditableインストールされる
+- 全メンバーの依存関係が1つの`uv.lock`にまとめて解決される（＝ビルド対象・解決対象として認識される）
 - 他のメンバーから`{ workspace = true }`で参照できるようになる
+- **ただし共有`.venv`へ実際にeditableインストールされるのは、root（または他のメンバー）の`dependencies`から辿れるパッケージだけ**。`members`への登録は「参照可能にする」ことと「ビルド解決の対象にする」ことまでしかせず、「実際にインストールする」のは別の話（上の`[project] dependencies`の節を参照）。`normalizer`をこの節にだけ追加してインストールされなかった件が実例
 
 **加えないと何が困るか**：`adapters/core/pyproject.toml`を作っても`members`に追加し忘れると、`usb-camera-adapter`側の`[tool.uv.sources] adapter-core = { workspace = true }`が参照先を見つけられずエラーになる。「フォルダとして存在する」ことと「ワークスペースの一員として認識される」ことは別で、`members`への登録が両者を繋ぐ。
 

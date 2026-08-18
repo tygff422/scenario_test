@@ -16,17 +16,23 @@
 | **テスト専用コード**（`tests/`配下、`packages`宣言なし） | `test_support` | pytestの標準動作（prependモード）が、テストファイルの属するディレクトリをsys.pathに挿入する | **そのtests/ディレクトリ内のみ**有効。他のtests/からは見えない |
 | **設定・データ** | `normalizer/config/workflow.yaml` | Pythonパッケージではない。`open()`で読むファイル | import経路と無関係 |
 
-## ルール1：1つのワークスペース＝1つの共有venv
+## ルール1：1つのワークスペース＝1つの共有venv（ただし「入るための条件」を後日訂正）
 
-`[tool.uv.workspace]`に登録された全メンバー（`orchestrator`, `adapters/usb_camera_adapter`, `adapters/core`）は、`uv sync`実行時に**1つの`.venv`**へまとめてeditableインストールされる。これは実際に`adapters/core`を`members`に追加しただけで（rootの`dependencies`には未追加のまま）`uv sync`のログに
+`[tool.uv.workspace]`に登録されたメンバー（`orchestrator`, `adapters/usb_camera_adapter`, `adapters/core`, `normalizer`）は、`uv sync`実行時に**1つの`.venv`**を共有する。これは実際に`adapters/core`を`members`に追加しただけで（rootの`dependencies`には未追加のまま）`uv sync`のログに
 
 ```
 + adapter-core==0.1.0 (from file:///.../adapters/core)
 ```
 
-と表示され、自動でインストールされたことで確認済み。
+と表示され、自動でインストールされたことで確認できた。
 
 **帰結**：ワークスペース内のどのパッケージも、他のワークスペースメンバーが「たまたま」インストールされていれば、自分の`dependencies`に書いていなくてもimportできてしまう。これが「動く」ことと「正しく宣言されている」ことが乖離する根本原因。
+
+### 訂正（2026-08-17）：「たまたまインストールされていれば」の中身を勘違いしていた
+
+上記だけを読むと「`members`に登録さえすれば自動的に共有venvへインストールされる」ように読めるが、これは誤り。`normalizer`を`members`にだけ追加し、rootの`dependencies`には追加し忘れた際、実際には`.venv`にインストールされず、`import normalizer`が（`normalizer/`フォルダがカレントディレクトリにあったせいで）名前空間パッケージとして解決されてしまい、`normalizer.__file__`が`None`になるという分かりにくい壊れ方をした。
+
+**正しいルール**：`members`への登録は「ビルド・依存解決の対象にする」ことと「他メンバーから`{ workspace = true }`で参照可能にする」ことまでしかしない。**実際に共有venvへインストールされるのは、root（または他の何らかのメンバー）の`dependencies`からたどり着けるパッケージだけ**。`adapter-core`が自動で入っていたのは「たまたま」ではなく、`orchestrator`・`usb-camera-adapter`が明示的に`adapter-core`を依存に書いていたから。詳細は[02_root_pyproject_settings.md](02_root_pyproject_settings.md)の訂正箇所を参照。
 
 ## ルール2：「動く」≠「正しく依存が宣言されている」
 
