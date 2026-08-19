@@ -58,6 +58,22 @@ result = asyncio.run(orchestrator.execute(pipeline))
 
 `execute_pipeline()`は内部で「YAMLを読む→`execute()`を呼ぶ」だけの薄いラッパーになっている。
 
+### 実行結果を後から参照する：`Context`
+
+`execute()`は各ステップの`execute_step()`の結果を`self.context`（`orchestrator.context.Context`）に記録する。
+呼び出しのたびにリセットされる（前回実行の履歴は引き継がない）。
+
+```python
+await orchestrator.execute(pipeline)
+
+for entry in orchestrator.context.history:       # 実行順のlist[StepResult]
+    print(entry.name, entry.action, entry.result)
+
+orchestrator.context.last_result_for("capture")  # 指定actionの直近の結果（無ければNone）
+```
+
+v0では「後から参照できる」だけで、前のステップの結果を次のステップの`params`へ自動的に注入する機能（テンプレート的な置換）は無い。必要になったら拡張する。
+
 #### workflow.yamlの書式
 
 ```yaml
@@ -77,6 +93,9 @@ pipeline:
 - いずれかのステップで例外が発生した場合、そこでパイプライン全体を中断し`False`を返す
   （後続ステップは実行されない）
 
+`steps`キーを使うと、同一Adapterインスタンス（setup/teardownは1回だけ）で複数アクションを連続実行できる。
+詳細は[06_workflow_yaml_usage.md](../01_docs/decisions/06_workflow_yaml_usage.md)を参照。
+
 ## テスト
 
 ```bash
@@ -92,6 +111,8 @@ pytest orchestrator/tests -m "not hardware"
   `adapters/usb_camera_adapter/tests/test_support/`と同名にすると、両方の`tests/`を1回の
   pytest実行にまとめたときに、prependモードでのモジュール名衝突（後から集められた方の
   `test_support`が解決できなくなる）が発生するため、パッケージごとに名前を分けている。
+- `test_context.py`：`Context`の`record`/`last_result_for`単体、および`GenericOrchestrator.execute()`が
+  各ステップの結果を正しく記録すること（steps形式で上書きされないこと、呼び出しのたびにリセットされること）を検証
 
 実機（USBカメラ）を使った動作確認は`main.py`、または`integrationtest/`の`@pytest.mark.hardware`が
 付いたテストを参照。

@@ -140,12 +140,13 @@ Step 7  最終統合・リファクタリング（学習計画Phase9相当） �
 
 （2026-08-19時点で更新）
 
-1. Step7：`registry.py`/`context.py`等の最終統合 ← 次はこれ
+1. Step7：`registry.py`（クラスパスの起動時一括検証）← 次はこれ
 
 対応済み：
 - 同一Adapterインスタンスを複数アクションで使い回す仕組み（`steps`形式、[06](decisions/06_workflow_yaml_usage.md)参照）
 - `adapters/usb_camera_adapter`（別GitHubリポジトリ）へのsrc/tests実装のpush完了
   （`.gitignore`未整備だったため新規作成し、`img/`等の生成物を除外した上でpush）
+- `context.py`：各ステップの実行結果を履歴として保持する`Context`を追加（[10](decisions/10_context_step_history.md)）
 
 ---
 

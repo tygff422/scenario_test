@@ -32,6 +32,7 @@ from loguru import logger
 import yaml
 
 from adapter_core.baseadapter import BaseAdapter
+from orchestrator.context import Context
 
 
 class GenericOrchestrator:
@@ -41,6 +42,7 @@ class GenericOrchestrator:
         既にパース済みのpipelineを直接渡すexecute()を使う場合は不要。
         """
         self.config_path = config_path
+        self.context = Context()  # execute()実行後、ここに各ステップの結果が貯まる
 
     def _load_adapter(self, class_path: str) -> Type[BaseAdapter]:
         """文字列からクラスを動的にロードし、BaseAdapter の派生クラスか検証する"""
@@ -86,7 +88,11 @@ class GenericOrchestrator:
         - steps形式（1要素=同一インスタンスでの複数アクション）: {"adapter", "params", "steps": [...]}
             paramsはコンストラクタ専用。各steps[i]が{"action", "params"}を持ち、
             同じAdapterインスタンス（setup/teardownは1回だけ）に対して順番にexecute_stepされる
+
+        各execute_stepの結果はself.contextに記録される（呼び出し側は実行後に参照できる）。
+        呼び出しのたびにself.contextはリセットされる（前回実行の履歴を引きずらない）。
         """
+        self.context = Context()
         logger.info(f"パイプライン実行開始 (全 {len(pipeline)} ステップ)")
 
         for step_info in pipeline:
@@ -113,10 +119,12 @@ class GenericOrchestrator:
                                 action=action, params=sub_params
                             )
                             logger.info(f"[{step_name}] {action} 実行結果: {result}")
+                            self.context.record(name=step_name, action=action, result=result)
                     else:
                         action = step_info.get("action")
                         result = await adapter.execute_step(action=action, params=params)
                         logger.info(f"[{step_name}] 実行結果: {result}")
+                        self.context.record(name=step_name, action=action, result=result)
 
             except Exception as e:
                 logger.exception(
