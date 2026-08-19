@@ -79,26 +79,44 @@ class GenericOrchestrator:
 
         normalizer.converter.convert()の戻り値をそのまま渡せる（ファイル書き出し不要）。
         setup/teardown（with構文）はsyncのまま。execute_stepだけawaitする。
+
+        pipelineの各要素は以下の2形式のどちらかを取る：
+        - 従来形式（1要素=1アクション）: {"adapter", "action", "params"}
+            paramsはコンストラクタとexecute_stepの両方に渡る
+        - steps形式（1要素=同一インスタンスでの複数アクション）: {"adapter", "params", "steps": [...]}
+            paramsはコンストラクタ専用。各steps[i]が{"action", "params"}を持ち、
+            同じAdapterインスタンス（setup/teardownは1回だけ）に対して順番にexecute_stepされる
         """
         logger.info(f"パイプライン実行開始 (全 {len(pipeline)} ステップ)")
 
         for step_info in pipeline:
             step_name = step_info.get("name", "Unknown Step")
             class_path = step_info.get("adapter")
-            action = step_info.get("action")
             params = step_info.get("params", {})
+            sub_steps = step_info.get("steps")
 
             logger.info(f"--- Step: {step_name} ---")
 
             try:
-                # 1. クラスの動的ロードとインスタンス化
+                # 1. クラスの動的ロードとインスタンス化（同一インスタンスを以下で使い回す）
                 cls = self._load_adapter(class_path)
                 adapter: BaseAdapter = cls(config=params)
 
                 # 2. BaseAdapter に集約した with 構文（setup / teardown）を利用して安全に実行！
+                #    setup/teardownは1回だけ。steps形式なら中で複数回execute_stepする
                 with adapter:
-                    result = await adapter.execute_step(action=action, params=params)
-                    logger.info(f"[{step_name}] 実行結果: {result}")
+                    if sub_steps is not None:
+                        for sub_step in sub_steps:
+                            action = sub_step.get("action")
+                            sub_params = sub_step.get("params", {})
+                            result = await adapter.execute_step(
+                                action=action, params=sub_params
+                            )
+                            logger.info(f"[{step_name}] {action} 実行結果: {result}")
+                    else:
+                        action = step_info.get("action")
+                        result = await adapter.execute_step(action=action, params=params)
+                        logger.info(f"[{step_name}] 実行結果: {result}")
 
             except Exception as e:
                 logger.exception(

@@ -21,5 +21,5 @@
 ## 現在の進捗
 ・完了：Step0〜6（緊急修正/Fakeテスト/E2E/ドキュメント整理/インターフェース健全化/非同期化/PlantUML→DSL変換）
 ・実施中：なし（Step6完了、Step7未着手）
-・次のタスク：Step7（registry.py/context.py等の最終統合、同一Adapterインスタンスの使い回し対応）
+・次のタスク：Step7（registry.py/context.py等の最終統合、同一Adapterインスタンスの使い回しは対応済み）
 ・詳細：01_docs/implementation_plan.md 参照

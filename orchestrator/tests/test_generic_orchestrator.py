@@ -189,3 +189,86 @@ def test_execute_pipeline_without_config_path_returns_false():
     result = asyncio.run(orchestrator.execute_pipeline())
 
     assert result is False
+
+
+# --- steps形式: 同一Adapterインスタンスで複数アクションを連続実行する ---
+
+
+def test_execute_steps_format_reuses_same_instance_setup_teardown_once():
+    orchestrator = GenericOrchestrator()
+
+    pipeline = [
+        {
+            "name": "連続実行セッション",
+            "adapter": FAKE_ADAPTER_PATH,
+            "params": {},
+            "steps": [
+                {"action": "step1", "params": {}},
+                {"action": "step2", "params": {}},
+            ],
+        }
+    ]
+
+    result = asyncio.run(orchestrator.execute(pipeline))
+
+    assert result is True
+    # setup/teardownが1回ずつだけ呼ばれ、その間に2アクション実行されている
+    assert FakePipelineAdapter.events == [
+        "setup",
+        "execute:step1",
+        "execute:step2",
+        "teardown",
+    ]
+
+
+def test_execute_steps_format_raise_stops_remaining_substeps_but_teardown_runs():
+    orchestrator = GenericOrchestrator()
+
+    pipeline = [
+        {
+            "name": "途中で失敗するセッション",
+            "adapter": FAKE_ADAPTER_PATH,
+            "params": {},
+            "steps": [
+                {"action": "step1", "params": {"execute_should_raise": True}},
+                {"action": "step2", "params": {}},
+            ],
+        }
+    ]
+
+    result = asyncio.run(orchestrator.execute(pipeline))
+
+    assert result is False
+    # step1で例外 -> step2は実行されないが、withを抜けるのでteardownは呼ばれる
+    assert FakePipelineAdapter.events == ["setup", "execute:step1", "teardown"]
+
+
+def test_execute_mixes_legacy_and_steps_format_in_same_pipeline():
+    orchestrator = GenericOrchestrator()
+
+    pipeline = [
+        {
+            "name": "従来形式ステップ",
+            "adapter": FAKE_ADAPTER_PATH,
+            "action": "legacy_action",
+            "params": {},
+        },
+        {
+            "name": "steps形式セッション",
+            "adapter": FAKE_ADAPTER_PATH,
+            "params": {},
+            "steps": [{"action": "new_action", "params": {}}],
+        },
+    ]
+
+    result = asyncio.run(orchestrator.execute(pipeline))
+
+    assert result is True
+    assert FakePipelineAdapter.events == [
+        "setup",
+        "execute:legacy_action",
+        "teardown",
+        "setup",
+        "execute:new_action",
+        "teardown",
+    ]

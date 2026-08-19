@@ -132,17 +132,50 @@ CameraAdapterと全く同じ骨格（setup=接続+確認、execute_step=1アク�
 
 いずれかのステップ（クラスロード・`setup`・`execute_step`のどこでも）で例外が発生すると、`GenericOrchestrator.execute_pipeline()`はその場でパイプライン全体を中断し`False`を返す。**リトライや後続ステップのスキップといった細かい制御は無い**（全断のみ）。個別ステップの再試行やエラー時の代替処理が必要になったら、ここを拡張する必要がある。
 
-## 6. 既知の制約（今後の拡張ポイント）
+## 6. 同一Adapterインスタンスを複数アクションで使い回す：`steps`形式（2026-08-17実装）
 
-**現状はYAMLの1ステップ＝新規インスタンス生成＋setup→execute_step→teardownの1サイクル**という設計になっている。
+当初は「YAMLの1要素＝新規インスタンス生成＋setup→execute_step→teardownの1サイクル」のみで、「1回connectして、captureを2回行ってからrelease」のような使い回しができなかった（既知の制約として保留していた）。`pipeline`の各要素に`steps`キーを追加することで解消した。
 
-```text
-もし「1回connectして、captureを2回行ってからrelease」のように
-同じ接続を使い回して複数アクションを連続実行したい場合、
-今のままではワークフローに2ステップ書くと、
-ステップごとに新規インスタンスが生成されるため
-1ステップ目でopen→capture→release、2ステップ目でまたopen→capture→release
-と、毎回接続し直しになってしまう。
+```yaml
+pipeline:
+  # 従来形式（1要素=1アクション）。互換性のためそのまま使える
+  - name: "カメラ画像撮影"
+    adapter: "camera_adapter.camera_adapter.CameraAdapter"
+    action: "capture"
+    params:
+      resolution: [640, 480]
+
+  # steps形式：1つのインスタンスで複数アクションを連続実行
+  - name: "カメラ連続撮影セッション"
+    adapter: "camera_adapter.camera_adapter.CameraAdapter"
+    params:
+      device_id: 0
+    steps:
+      - action: "capture"
+        params:
+          resolution: [640, 480]
+      - action: "capture"
+        params:
+          resolution: [1280, 720]
 ```
 
-これは意図的に今のスコープ外としている（YAGNI）。ロードマップのStep7（最終統合・`registry.py`/`context.py`の導入）で、同じAdapterインスタンスを複数ステップにまたがって使い回す仕組みが必要になったタイミングで再検討する、という拡張性として残していることを明記しておく。
+```text
+adapter = cls(config=params)   # 1回だけ
+with adapter:                  # setup() は1回だけ
+    for step in steps:
+        await adapter.execute_step(step.action, step.params)  # N回
+    # teardown() も1回だけ（with を抜けるとき）
+```
+
+**`params`の意味が形式によって変わる点に注意**：
+
+| | 従来形式 | `steps`形式 |
+|---|---|---|
+| トップレベルの`params` | コンストラクタとexecute_stepの両方に渡る（2の「兼ねる」仕様のまま） | コンストラクタ専用 |
+| execute_stepに渡る値 | トップレベルの`params`と同じもの | `steps[].params`（各ステップごとに別々） |
+
+`steps`形式では、2節で説明した「`params`がコンストラクタ用とexecute_step用を兼ねる」曖昧さが解消され、両者が明確に分離される。後方互換のため従来形式の挙動（`params`兼用）は変えていない。
+
+エラー時の挙動は5節と同じ：`steps`内のどこかで例外が発生すると、その時点で残りの`steps`は実行されずに`with`を抜ける（＝`teardown()`は呼ばれる）。パイプライン全体もそこで中断する。
+
+実装：`orchestrator/src/orchestrator/orchestrator.py`の`GenericOrchestrator.execute()`。テスト：`orchestrator/tests/test_generic_orchestrator.py`。

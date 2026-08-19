@@ -138,11 +138,13 @@ Step 7  最終統合・リファクタリング（学習計画Phase9相当） �
 
 ## 現時点で残っている未完了タスク
 
-（2026-08-17時点で更新。Step0〜6は全て対応済みのため消し込み）
+（2026-08-17時点で更新）
 
-1. Step7：`registry.py`/`context.py`等の最終統合、同一Adapterインスタンスを複数アクションで
-   使い回す仕組み（[06](decisions/06_workflow_yaml_usage.md)の既知の制約） ← 次はこれ
+1. Step7：`registry.py`/`context.py`等の最終統合 ← 次はこれ
 2. `adapters/usb_camera_adapter`（別GitHubリポジトリ）側に、直近のsrc/tests実装がまだpushされていない
+
+同一Adapterインスタンスを複数アクションで使い回す仕組み（`steps`形式）は2026-08-17に対応済み
+（[06](decisions/06_workflow_yaml_usage.md)参照）。
 
 ---
 

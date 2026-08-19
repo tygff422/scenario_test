@@ -68,9 +68,11 @@ def convert(plantuml_text: str) -> list[dict]:
 
 ## 未確定（今後決めること）
 
-| # | 論点 |
-|---|---|
-| 4 | 同一Adapterインスタンスを複数アクションで使い回す仕組み（`steps`ネスト導入）をいつ着手するか |
+現時点で残っている論点は無し。`converter.py`側の未確定事項は全て解消済み。
+
+## 決定事項の追記3（2026-08-17）：未確定事項4（steps導入）を解消
+
+同一Adapterインスタンスを複数アクションで使い回す`steps`形式を`GenericOrchestrator.execute()`に実装した。詳細は[06_workflow_yaml_usage.md](06_workflow_yaml_usage.md)の該当節を参照（`converter.py`自体はこの変更の影響を受けない。`convert()`が生成する`list[dict]`にも`steps`キーを含む要素を混ぜられる）。
 
 ## 決定事項の追記2（2026-08-17、Step6完了）
 
