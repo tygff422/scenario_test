@@ -77,60 +77,10 @@ CameraAdapterの対応：
 
 ## 4. 新しいAdapterを追加する手順
 
-1. `BaseAdapter`（`adapter_core.baseadapter`）を継承し、`setup()` / `execute_step()` / `teardown()` を実装する
-   - `setup()`：接続 + 使える状態かの確認 → `bool`を返す（`False`なら`with`に入った時点で`RuntimeError`）。sync
-   - `execute_step()`：**`async def`で実装する**（[09](09_async_execute_step.md)）。対応する`action`ごとに分岐。
-     未対応の`action`は`ValueError`を投げる（CameraAdapterに倣う）。ブロッキングするI/O呼び出し（ファイル・
-     ネットワーク・OpenCV等）は`asyncio.to_thread`で包み、他の非同期処理を止めないようにする
-   - `teardown()`：リソース解放。例外は`BaseAdapter.__exit__`側でログに残されるだけで再送出はされない。sync
-2. 対応する`pyproject.toml`の`[tool.hatch.build.targets.wheel] packages`にモジュールを追加し、ワークスペースへ`uv sync`で反映する（[03](03_package_settings_adapter_orchestrator.md)参照）
-3. `workflow.yaml`の`pipeline`にステップを追記する（`adapter`は短い形式のimportパスで）
+新しいパッケージ作成・pyproject登録・Fake/テスト・mapping.yaml連携・成果物ディレクトリの扱いまで含めた完全な手順は、[../new_adapter_package_guide.md](../new_adapter_package_guide.md)（生きたガイド、`decisions/`の外）にまとめた。ここでは要点だけ再掲する。
 
-### 例：AudioAdapterを追加する場合
-
-```python
-import asyncio
-
-
-class AudioAdapter(BaseAdapter):
-    def __init__(self, config=None):
-        device_id = (config or {}).get("device_id", 0)
-        self.controller = AudioController(device_id=device_id)
-
-    def setup(self) -> bool:
-        if not self.controller.open():
-            return False
-        self._is_ready = self.controller.is_ready()
-        return self._is_ready
-
-    async def execute_step(self, action, params) -> dict:
-        if action == "record":
-            data = await asyncio.to_thread(
-                self.controller.record, params.get("duration_sec", 3)
-            )
-            return {"status": "SUCCESS" if data else "FAILED", "data": data}
-        raise ValueError(f"未対応のアクションです: {action}")
-
-    def teardown(self) -> None:
-        self.controller.release()
-```
-
-```yaml
-pipeline:
-  - name: "カメラ画像撮影"
-    adapter: "camera_adapter.camera_adapter.CameraAdapter"
-    action: "capture"
-    params:
-      resolution: [640, 480]
-
-  - name: "音声録音"
-    adapter: "audio_adapter.audio_adapter.AudioAdapter"
-    action: "record"
-    params:
-      duration_sec: 3
-```
-
-CameraAdapterと全く同じ骨格（setup=接続+確認、execute_step=1アクション、teardown=解放）をなぞるだけで、既存の`GenericOrchestrator`はコード変更なしに新しいAdapterを実行できる。
+- `BaseAdapter`を継承し、`setup()`（sync、接続確認のみ）/ `execute_step()`（**async def**、[09](09_async_execute_step.md)）/ `teardown()`（sync）を実装する
+- `CameraAdapter`と同じ骨格をなぞるだけで、既存の`GenericOrchestrator`・`registry.py`・`context.py`はコード変更なしに新しいAdapterを実行できる
 
 ## 5. エラー時の挙動
 

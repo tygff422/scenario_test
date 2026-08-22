@@ -29,7 +29,7 @@ PlantUML風シナリオ
 
 ## 実装状況
 
-Phase1〜4（仮想LED・Fakeベースの基礎練習）を飛ばして、Phase5・6・8相当（Orchestrator/設定駆動パイプライン/USBカメラ）に先行着手した状態から、Step0〜Step5まで完了しました。詳細な経緯は[01_docs/decisions/](decisions/)を参照してください。
+Phase1〜4（仮想LED・Fakeベースの基礎練習）を飛ばして、Phase5・6・8相当（Orchestrator/設定駆動パイプライン/USBカメラ）に先行着手した状態から、Step0〜Step5まで完了しました。詳細な経緯は[01_docs/decisions/](decisions/)を参照してください。新しいAdapter（Audio等）を追加する場合は[new_adapter_package_guide.md](new_adapter_package_guide.md)を参照してください。
 
 ```text
 実装済み:
