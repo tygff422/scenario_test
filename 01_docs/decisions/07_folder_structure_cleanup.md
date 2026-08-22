@@ -34,6 +34,8 @@
 
 ルート・`orchestrator/`は`README.md`（大文字）に対しここだけ`Readme.md`。**`README.md`にリネーム**（Windowsの大文字小文字を区別しないファイルシステム対策として、一旦別名を経由する2段階リネームで実施）。
 
+**訂正（2026-08-22）**：この時のコミットはroot（`scenario_test`）側でのみ実行しており、`adapters/usb_camera_adapter/`はrootのgit管理から除外された別リポジトリのため、実際にはこのリポジトリ自体には反映されていなかった（`git ls-files`で確認すると`Readme.md`のまま）。別リポジトリを触った時はそちら側でも`git add`/`git commit`が必要、という当たり前の点を見落としていた。後日、該当リポジトリ側で改めてリネーム・コミットして解消した。
+
 ## 確認
 
 - `uv sync` → 成功（`.python-version`変更後も解決に問題なし）
