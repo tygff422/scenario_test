@@ -34,6 +34,14 @@ from orchestrator.context import Context
 from orchestrator.registry import load_adapter_class, validate_pipeline
 
 
+def _summarize_result(result: dict) -> dict:
+    """ログ出力用に、frame(numpy配列)等の巨大な値を要約する（中身をそのまま出さない）"""
+    return {
+        key: (f"<array shape={value.shape}>" if hasattr(value, "shape") else value)
+        for key, value in result.items()
+    }
+
+
 class GenericOrchestrator:
 
     def __init__(self, config_path: str | None = None):
@@ -116,12 +124,14 @@ class GenericOrchestrator:
                             result = await adapter.execute_step(
                                 action=action, params=sub_params
                             )
-                            logger.info(f"[{step_name}] {action} 実行結果: {result}")
+                            logger.info(
+                                f"[{step_name}] {action} 実行結果: {_summarize_result(result)}"
+                            )
                             self.context.record(name=step_name, action=action, result=result)
                     else:
                         action = step_info.get("action")
                         result = await adapter.execute_step(action=action, params=params)
-                        logger.info(f"[{step_name}] 実行結果: {result}")
+                        logger.info(f"[{step_name}] 実行結果: {_summarize_result(result)}")
                         self.context.record(name=step_name, action=action, result=result)
 
             except Exception as e:

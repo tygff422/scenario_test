@@ -67,9 +67,11 @@ CameraAdapterの対応：
 
 | ライフサイクル段階 | CameraAdapterでの実装 |
 |---|---|
-| `setup()` | `open()`（OpenCVでカメラ接続）→ `check_device_status()`（LEDのROIを見てREADY判定） |
+| `setup()` | `open()`（OpenCVでカメラ接続）のみ。LED確認はしない（[12](12_essential_gaps_found.md)、2026-08-22変更） |
 | `execute_step("capture", params)` | 撮影のみ。`action`が`"capture"`以外なら`ValueError` |
 | `teardown()` | `camera_controller.release()` |
+
+**2026-08-22の変更**：以前は`setup()`が`check_device_status()`（LED確認、内部で1回撮影）も呼んでいたが、デモ用`Orchestrator.execute()`が独自にもう一度`check_device_status()`を呼んでおり、1回の実行で2回撮影してしまうバグがあった（[12](12_essential_gaps_found.md)）。`setup()`は接続確認のみに絞り、LED確認が必要な呼び出し元（`Orchestrator.execute()`等）が自分で呼ぶ形に変更した。
 
 ## 4. 新しいAdapterを追加する手順
 

@@ -145,15 +145,15 @@ Step 7  最終統合・リファクタリング（学習計画Phase9相当） �
 
 ## 現時点で残っている未完了タスク
 
-（2026-08-22時点で更新）
+（2026-08-22時点で更新。必須課題3件は全て対応・実機確認済みのため消し込み）
 
-Step0〜7完了後の棚卸しで、必須の抜け漏れが3件見つかった（詳細は[12](decisions/12_essential_gaps_found.md)）。これらは学習計画のオプション項目とは別で、対応必須：
+Step0〜7完了後の棚卸しで見つかった必須課題3件（[12](decisions/12_essential_gaps_found.md)）は全て対応済み：
 
-1. プロジェクト全体を実行する正規の入口が無い（PlantUML→変換→Orchestrator→Adapter→Controllerを1本で動かすファイルが未整備）
-2. `GenericOrchestrator`が実機カメラで一度も検証されていない
-3. LED二重チェックのバグ（`orchestrator/main.py`経路、`setup()`内と`Orchestrator.execute()`内で2回撮影している）
+- プロジェクト全体を実行する正規の入口 → `run_scenario.py`を新規作成、実機で動作確認済み
+- `GenericOrchestrator`の実機検証 → `integrationtest/test_integration.py`に実機テスト追加、PASS確認済み
+- LED二重チェックのバグ → `CameraAdapter.setup()`から`check_device_status()`呼び出しを削除して解消
 
-上記3件の対応が終わり次第、以下の学習計画のオプション項目（任意）に進むかどうかを検討する：
+必須タスクは無し。以下は学習計画のオプション項目（任意）：
 
 1. Phase1・2・4（仮想LED・Fake中心の基礎練習。当初から先行着手のため後回しにしていた）
 2. Phase7（ファイルController・ローカルHTTP Controller・FakeSerial）

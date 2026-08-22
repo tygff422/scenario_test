@@ -1,0 +1,7 @@
+@startuml
+start
+:カメラ接続;
+:カメラ画像撮影;
+:カメラ切断;
+stop
+@enduml

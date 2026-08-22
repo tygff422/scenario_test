@@ -2,7 +2,7 @@
 
 - 日付: 2026-08-22
 - 関連: [implementation_plan.md](../implementation_plan.md)（プロジェクトの最終ゴール定義）
-- ステータス: 課題を記録（対応はこれから）
+- ステータス: 完了（3件とも対応・実機で確認済み）
 
 ## 背景
 
@@ -32,6 +32,29 @@ Step5（非同期化）・Step6（steps形式）・Step7（context/registry）�
 
 `orchestrator/main.py`実行時、`CameraAdapter.setup()`内の`check_device_status()`（1回目）と、`Orchestrator.execute()`内の`adapter.check_device_status()`（2回目）で、LED点灯判定が2回実行されている（＝2回撮影している）。1回で十分なはずで、無駄な撮影が発生している。
 
-## 対応方針
+## 対応内容（2026-08-22、同日中に完了）
 
-3件とも対応する。順番は次のタスクから着手する。
+### 1. 正規の実行入口：`run_scenario.py`
+
+プロジェクトルートに新規作成。`normalizer/config/scenario.puml`（入力シナリオ）→`normalizer.converter`→`GenericOrchestrator.execute()`の一気通貫を実行する。
+
+```bash
+uv run python run_scenario.py
+```
+
+**実機で実行し、exit code 0を確認済み。** `orchestrator/main.py`（デモ用`Orchestrator`固定経路）とは別物として共存させた（同名衝突を避けるため`main.py`ではなく`run_scenario.py`という名前にした）。
+
+### 2. `GenericOrchestrator`の実機検証
+
+`integrationtest/test_integration.py`に`test_generic_orchestrator_with_real_camera_adapter`（`@pytest.mark.hardware`）を追加。実際にこの端末で実機カメラが利用可能なことが判明し、`uv run pytest -m hardware -q`で**3件全てPASS**（既存2件＋新規1件）。
+
+副次的に、`GenericOrchestrator`・`run_scenario.py`双方で、`execute_step`の戻り値（`frame`のnumpy配列）をログにそのまま出力すると大量の数値列がログに流れる問題を発見。`_summarize_result()`（配列は`<array shape=...>`に要約）をそれぞれに追加して解消した。
+
+### 3. LED二重チェックのバグ
+
+`CameraAdapter.setup()`から`check_device_status()`の呼び出しを削除し、`open()`のみに変更（[06_workflow_yaml_usage.md](06_workflow_yaml_usage.md)・[04_urgent_fix_camera_pipeline.md](04_urgent_fix_camera_pipeline.md)に追記済み）。LED確認は呼び出し元（デモ用`Orchestrator.execute()`）が引き続き自分で行う。
+
+## 確認
+
+`uv run pytest -m "not hardware" -q` → `40 passed, 3 deselected`
+`uv run pytest -m hardware -q` → `3 passed`（実機カメラで実行、退行なし）

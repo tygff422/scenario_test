@@ -66,6 +66,8 @@ def __init__(self, config: dict[str, Any] | None = None, camera_controller=None)
 status = self.check_device_status()
 ```
 
+**2026-08-22追記**：この対応が結果的にバグの原因になっていた。デモ用`Orchestrator.execute()`も独自に`check_device_status()`を呼ぶため、1回の実行で2回撮影してしまっていた。`setup()`からは`check_device_status()`の呼び出しを外し、接続（`open()`）のみに戻した（[12_essential_gaps_found.md](12_essential_gaps_found.md)、[06_workflow_yaml_usage.md](06_workflow_yaml_usage.md)参照）。
+
 ### 7. `cv2.VideoCapture`のAPI名の誤り
 - 症状: `is_opened()`ではなく`isOpened()`が正しいAPI
 - 対応: **修正済み**（[camera_controller.py:38](../../adapters/usb_camera_adapter/src/camera_controller/camera_controller.py#L38)）

@@ -1,6 +1,8 @@
+import asyncio
+
 import pytest
 
-from orchestrator.orchestrator import Orchestrator
+from orchestrator.orchestrator import GenericOrchestrator, Orchestrator
 from camera_adapter.camera_adapter import CameraAdapter
 from camera_controller.camera_controller import CameraController
 
@@ -24,3 +26,24 @@ def test_orchestrator_adapter_controller():
 
     result = orchestrator.execute()
     assert result is True
+
+
+@pytest.mark.hardware
+def test_generic_orchestrator_with_real_camera_adapter():
+    # GenericOrchestrator（YAML/PlantUML駆動の本線）を実機カメラで検証する。
+    # 01_docs/decisions/12_essential_gaps_found.md 課題2の対応
+    # （これまでGenericOrchestratorはFake経由でしか検証されていなかった）。
+    pipeline = [
+        {
+            "name": "カメラ画像撮影",
+            "adapter": "camera_adapter.camera_adapter.CameraAdapter",
+            "action": "capture",
+            "params": {"resolution": [640, 480]},
+        }
+    ]
+
+    orchestrator = GenericOrchestrator()
+    result = asyncio.run(orchestrator.execute(pipeline))
+
+    assert result is True
+    assert orchestrator.context.history[0].result["status"] == "SUCCESS"
