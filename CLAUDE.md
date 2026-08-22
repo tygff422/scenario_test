@@ -21,6 +21,6 @@
 
 ## 現在の進捗
 ・完了：Step0〜7（緊急修正/Fakeテスト/E2E/ドキュメント整理/インターフェース健全化/非同期化/PlantUML→DSL変換/最終統合）
-・実施中：なし（ロードマップ本線は完了）
-・次のタスク：任意課題（Phase1/2/4の基礎練習、Phase7のFile/HTTP/FakeSerial等）。特に無ければ相談
-・詳細：01_docs/implementation_plan.md 参照
+・実施中：棚卸しで見つかった必須課題3件の対応（正規実行入口の未整備／GenericOrchestrator実機未検証／LED二重チェックのバグ）
+・次のタスク：上記3件 → 完了後に任意課題（Phase1/2/4等）を検討
+・詳細：01_docs/implementation_plan.md、01_docs/decisions/12_essential_gaps_found.md 参照
