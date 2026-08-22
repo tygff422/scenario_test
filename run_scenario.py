@@ -9,6 +9,7 @@ PlantUMLシナリオ -> normalizer.converter -> GenericOrchestrator -> Adapter -
 
 import asyncio
 import sys
+from datetime import datetime
 from pathlib import Path
 
 from loguru import logger
@@ -19,9 +20,23 @@ from orchestrator.orchestrator import GenericOrchestrator
 BASE_DIR = Path(__file__).parent
 SCENARIO_PATH = BASE_DIR / "normalizer" / "config" / "scenario.puml"
 MAPPING_PATH = BASE_DIR / "normalizer" / "config" / "mapping.yaml"
+LOG_DIR = BASE_DIR / "logs"
+
+
+def _setup_file_logging() -> Path:
+    """実行ごとにタイムスタンプ付きのログファイルを残す（01_docs/decisions/13参照）。
+    標準出力へのログ出力はそのまま維持し、ファイルにも同じログを書き出す（追加のsink）。
+    """
+    LOG_DIR.mkdir(exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_path = LOG_DIR / f"run_{timestamp}.log"
+    logger.add(log_path, encoding="utf-8")
+    logger.info(f"ログファイル: {log_path}")
+    return log_path
 
 
 async def run() -> bool:
+    _setup_file_logging()
     plantuml_text = SCENARIO_PATH.read_text(encoding="utf-8")
     lifecycle_labels, action_mapping = load_mapping(MAPPING_PATH)
 

@@ -2,7 +2,7 @@
 
 - 日付: 2026-08-22
 - 関連: [12_essential_gaps_found.md](12_essential_gaps_found.md)（前回の必須課題棚卸し）
-- ステータス: 課題を記録（仕様検討・実装はこれから）
+- ステータス: 完了（実機で確認済み）
 
 ## 背景
 
@@ -30,6 +30,30 @@
 | 4 | ログの保存先：ファイルに書き出すか、標準出力のみで良しとするか |
 | 5 | ログを書き出す場合のローテーション・保持期間 |
 
-## 対応方針
+## 決定した仕様
 
-上記の仕様を先に決めてから実装する。
+| # | 論点 | 決定 |
+|---|---|---|
+| 1 | 成果物の保存先 | `adapters/usb_camera_adapter/img/`のまま（変更なし） |
+| 2 | 成果物のファイル名 | 実行ごとにタイムスタンプ付き（`capture_20260822_155955_199.png`、ミリ秒まで含め同一実行内の衝突も回避） |
+| 3 | 保存タイミング | `CameraAdapter.execute_step("capture")`内で自動保存（呼び出し側の指示不要） |
+| 4 | ログの保存先 | `logs/run_YYYYMMDD_HHMMSS.log`にファイルへも書き出す（標準出力はそのまま維持、追加のsink） |
+| 5 | ローテーション | 今回は未対応（都度新規ファイルが増えていく。必要になったら`logger.add(..., retention=...)`等で対応） |
+
+## 実装内容
+
+- `CameraControllerInterface.save_capture`：戻り値を`None`→`Path | None`に変更（保存先パスを返す）
+- `CameraController.save_capture`/`save_roi_capture`：`frame is None`時に処理を続行してしまう既存バグを修正（早期return追加）。`_make_img_path`にミリ秒精度のタイムスタンプを追加
+- `CameraMockController.save_capture`（Fake）：契約に合わせて`Path | None`を返すよう変更（実際の保存はしない、Liskov置換を維持）
+- `CameraAdapter.execute_step("capture")`：撮影後に`save_capture()`を呼び、結果dictに`saved_path`を追加
+- `run_scenario.py`：`_setup_file_logging()`でタイムスタンプ付きログファイルを`logs/`に出力
+- `.gitignore`（ルート）に`logs/`を追加
+
+## 確認
+
+実機で`run_scenario.py`を実行し、以下を確認：
+- `img/capture_20260822_155955_199.png`が生成される
+- `logs/run_20260822_155922.log`が生成され、日本語も文字化けせず記録される（コンソール表示の文字化けはWindowsターミナルの表示上の問題で、ファイルには影響しない）
+- 実行結果に`saved_path`として実際の保存先パスが入る
+
+`uv run pytest -m "not hardware" -q` → `40 passed, 3 deselected`（退行なし）

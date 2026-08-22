@@ -153,11 +153,12 @@ Step 7  最終統合・リファクタリング（学習計画Phase9相当） �
 - `GenericOrchestrator`の実機検証 → `integrationtest/test_integration.py`に実機テスト追加、PASS確認済み
 - LED二重チェックのバグ → `CameraAdapter.setup()`から`check_device_status()`呼び出しを削除して解消
 
-`run_scenario.py`の実機確認中に、追加で必須課題が1件見つかった（[13](decisions/13_log_and_artifact_storage_gap.md)）：
+`run_scenario.py`の実機確認中に見つかった追加課題（[13](decisions/13_log_and_artifact_storage_gap.md)）も対応済み：
 
-1. 撮影した画像がファイルとして保存されていない・ログの永続化ポリシーが無い ← 仕様検討中、次はこれ
+- 撮影画像をタイムスタンプ付きで`img/`に自動保存するよう変更
+- 実行ログを`logs/run_YYYYMMDD_HHMMSS.log`にも書き出すよう変更
 
-上記の対応が終わり次第、以下の学習計画のオプション項目（任意）に進むかどうかを検討する：
+必須タスクは無し。以下は学習計画のオプション項目（任意）：
 
 1. Phase1・2・4（仮想LED・Fake中心の基礎練習。当初から先行着手のため後回しにしていた）
 2. Phase7（ファイルController・ローカルHTTP Controller・FakeSerial）

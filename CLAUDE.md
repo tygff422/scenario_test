@@ -20,7 +20,7 @@
 ・焦って結論を出さない。
 
 ## 現在の進捗
-・完了：Step0〜7＋必須課題3件（正規実行入口run_scenario.py／GenericOrchestrator実機検証／LED二重チェック修正、全て実機確認済み）
-・実施中：ログ出力・成果物（撮影画像）の格納仕様の検討（撮影した画像が実は保存されていない問題を発見）
-・次のタスク：仕様を決めて実装 → 完了後に任意課題（Phase1/2/4等）を検討
-・詳細：01_docs/implementation_plan.md、01_docs/decisions/13_log_and_artifact_storage_gap.md 参照
+・完了：Step0〜7＋必須課題4件（正規実行入口run_scenario.py／GenericOrchestrator実機検証／LED二重チェック修正／撮影画像とログの永続化、全て実機確認済み）
+・実施中：なし（必須タスクは全て完了）
+・次のタスク：任意課題（Phase1/2/4の基礎練習、Phase7のFile/HTTP/FakeSerial等）。特に無ければ相談
+・詳細：01_docs/implementation_plan.md 参照
