@@ -145,15 +145,19 @@ Step 7  最終統合・リファクタリング（学習計画Phase9相当） �
 
 ## 現時点で残っている未完了タスク
 
-（2026-08-22時点で更新。必須課題3件は全て対応・実機確認済みのため消し込み）
+（2026-08-22時点で更新）
 
-Step0〜7完了後の棚卸しで見つかった必須課題3件（[12](decisions/12_essential_gaps_found.md)）は全て対応済み：
+[12](decisions/12_essential_gaps_found.md)の必須課題3件は対応済み：
 
 - プロジェクト全体を実行する正規の入口 → `run_scenario.py`を新規作成、実機で動作確認済み
 - `GenericOrchestrator`の実機検証 → `integrationtest/test_integration.py`に実機テスト追加、PASS確認済み
 - LED二重チェックのバグ → `CameraAdapter.setup()`から`check_device_status()`呼び出しを削除して解消
 
-必須タスクは無し。以下は学習計画のオプション項目（任意）：
+`run_scenario.py`の実機確認中に、追加で必須課題が1件見つかった（[13](decisions/13_log_and_artifact_storage_gap.md)）：
+
+1. 撮影した画像がファイルとして保存されていない・ログの永続化ポリシーが無い ← 仕様検討中、次はこれ
+
+上記の対応が終わり次第、以下の学習計画のオプション項目（任意）に進むかどうかを検討する：
 
 1. Phase1・2・4（仮想LED・Fake中心の基礎練習。当初から先行着手のため後回しにしていた）
 2. Phase7（ファイルController・ローカルHTTP Controller・FakeSerial）
