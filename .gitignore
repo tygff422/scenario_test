@@ -9,11 +9,9 @@ wheels/
 # Virtual environments
 .venv
 
-# カメラ撮影画像（実行時に生成される成果物）
-img/
-
-# 実行ログ（run_scenario.py実行時に生成される成果物）
-logs/
+# testexecutor/run_scenario.py実行時に生成される成果物（ログ・撮影画像）
+testexecutor/logs/
+testexecutor/img/
 
 # usb_camera_adapterは独立したgitリポジトリ（別途 https://github.com/tygff422/UsbCameraController.git で管理）
 adapters/usb_camera_adapter/

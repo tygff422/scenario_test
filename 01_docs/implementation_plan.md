@@ -149,7 +149,8 @@ Step 7  最終統合・リファクタリング（学習計画Phase9相当） �
 
 [12](decisions/12_essential_gaps_found.md)の必須課題3件は対応済み：
 
-- プロジェクト全体を実行する正規の入口 → `run_scenario.py`を新規作成、実機で動作確認済み
+- プロジェクト全体を実行する正規の入口 → `testexecutor/run_scenario.py`を新規作成、実機で動作確認済み
+  （実行ファイル・ログ・成果物を`testexecutor/`にまとめた。[14](decisions/14_testexecutor_folder.md)参照）
 - `GenericOrchestrator`の実機検証 → `integrationtest/test_integration.py`に実機テスト追加、PASS確認済み
 - LED二重チェックのバグ → `CameraAdapter.setup()`から`check_device_status()`呼び出しを削除して解消
 

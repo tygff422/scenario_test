@@ -3,8 +3,11 @@
 PlantUMLシナリオ -> normalizer.converter -> GenericOrchestrator -> Adapter -> Controller
 の一気通貫を実行する（01_docs/decisions/12_essential_gaps_found.md 課題1の対応）。
 
+実行ファイル・ログ出力先・成果物（撮影画像）出力先を、このtestexecutor/フォルダに
+まとめている（01_docs/decisions/14_testexecutor_folder.md参照）。
+
 使い方:
-    uv run python run_scenario.py
+    uv run python testexecutor/run_scenario.py
 """
 
 import asyncio
@@ -17,10 +20,13 @@ from loguru import logger
 from normalizer.converter import convert, load_mapping
 from orchestrator.orchestrator import GenericOrchestrator
 
-BASE_DIR = Path(__file__).parent
-SCENARIO_PATH = BASE_DIR / "normalizer" / "config" / "scenario.puml"
-MAPPING_PATH = BASE_DIR / "normalizer" / "config" / "mapping.yaml"
-LOG_DIR = BASE_DIR / "logs"
+THIS_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = THIS_DIR.parent
+
+SCENARIO_PATH = PROJECT_ROOT / "normalizer" / "config" / "scenario.puml"
+MAPPING_PATH = PROJECT_ROOT / "normalizer" / "config" / "mapping.yaml"
+LOG_DIR = THIS_DIR / "logs"
+IMG_DIR = THIS_DIR / "img"
 
 
 def _setup_file_logging() -> Path:
@@ -35,12 +41,25 @@ def _setup_file_logging() -> Path:
     return log_path
 
 
+def _inject_img_dir(pipeline: list[dict]) -> None:
+    """撮影系ステップのparamsに、testexecutor/img/への出力先を注入する。
+
+    CameraController側はimg_dir未指定なら自パッケージ内img/へ保存する後方互換動作のまま。
+    scenario_test（呼び出し側）だけが、ここで出力先を上書きする。
+    """
+    IMG_DIR.mkdir(exist_ok=True)
+    for step in pipeline:
+        if step.get("action") == "capture":
+            step.setdefault("params", {})["img_dir"] = str(IMG_DIR)
+
+
 async def run() -> bool:
     _setup_file_logging()
     plantuml_text = SCENARIO_PATH.read_text(encoding="utf-8")
     lifecycle_labels, action_mapping = load_mapping(MAPPING_PATH)
 
     pipeline = convert(plantuml_text, lifecycle_labels, action_mapping)
+    _inject_img_dir(pipeline)
     logger.info(f"シナリオ変換完了: {SCENARIO_PATH.name} -> {len(pipeline)}ステップ")
 
     orchestrator = GenericOrchestrator()
