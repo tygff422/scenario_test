@@ -26,13 +26,12 @@ class Orchestrator:
             return False
 
 
-import importlib
-from typing import Type
 from loguru import logger
 import yaml
 
 from adapter_core.baseadapter import BaseAdapter
 from orchestrator.context import Context
+from orchestrator.registry import load_adapter_class, validate_pipeline
 
 
 class GenericOrchestrator:
@@ -43,19 +42,6 @@ class GenericOrchestrator:
         """
         self.config_path = config_path
         self.context = Context()  # execute()実行後、ここに各ステップの結果が貯まる
-
-    def _load_adapter(self, class_path: str) -> Type[BaseAdapter]:
-        """文字列からクラスを動的にロードし、BaseAdapter の派生クラスか検証する"""
-        module_path, class_name = class_path.rsplit(".", 1)
-        module = importlib.import_module(module_path)
-        cls = getattr(module, class_name)
-
-        # 抽出したクラスが本当に BaseAdapter を継承しているか厳格にチェック！
-        if not issubclass(cls, BaseAdapter):
-            raise TypeError(
-                f"{class_name} は BaseAdapter を継承していません。"
-            )
-        return cls
 
     async def execute_pipeline(self) -> bool:
         """self.config_pathのYAMLファイルを読み込んでから実行する（従来の外部インターフェース）。
@@ -91,8 +77,19 @@ class GenericOrchestrator:
 
         各execute_stepの結果はself.contextに記録される（呼び出し側は実行後に参照できる）。
         呼び出しのたびにself.contextはリセットされる（前回実行の履歴を引きずらない）。
+
+        実行前に全ステップのadapterクラスパスを一括検証する（registry.validate_pipeline）。
+        1つでも不正なら、何も実行せずにFalseを返す（実行途中で発覚して一部だけ実行済み、
+        という事故を防ぐ）。
         """
         self.context = Context()
+
+        errors = validate_pipeline(pipeline)
+        if errors:
+            for error in errors:
+                logger.error(f"[事前検証エラー] {error}")
+            return False
+
         logger.info(f"パイプライン実行開始 (全 {len(pipeline)} ステップ)")
 
         for step_info in pipeline:
@@ -105,7 +102,8 @@ class GenericOrchestrator:
 
             try:
                 # 1. クラスの動的ロードとインスタンス化（同一インスタンスを以下で使い回す）
-                cls = self._load_adapter(class_path)
+                #    事前検証済みだが、ロード自体はここで改めて行う（sys.modulesキャッシュ済みで軽量）
+                cls = load_adapter_class(class_path)
                 adapter: BaseAdapter = cls(config=params)
 
                 # 2. BaseAdapter に集約した with 構文（setup / teardown）を利用して安全に実行！

@@ -20,7 +20,7 @@
 ・焦って結論を出さない。
 
 ## 現在の進捗
-・完了：Step0〜6（緊急修正/Fakeテスト/E2E/ドキュメント整理/インターフェース健全化/非同期化/PlantUML→DSL変換）
-・実施中：Step7（context.py完了、registry.py未着手）
-・次のタスク：registry.py（クラスパスの起動時一括検証）
+・完了：Step0〜7（緊急修正/Fakeテスト/E2E/ドキュメント整理/インターフェース健全化/非同期化/PlantUML→DSL変換/最終統合）
+・実施中：なし（ロードマップ本線は完了）
+・次のタスク：任意課題（Phase1/2/4の基礎練習、Phase7のFile/HTTP/FakeSerial等）。特に無ければ相談
 ・詳細：01_docs/implementation_plan.md 参照

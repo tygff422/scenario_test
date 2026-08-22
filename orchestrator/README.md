@@ -74,6 +74,21 @@ orchestrator.context.last_result_for("capture")  # 指定actionの直近の結�
 
 v0では「後から参照できる」だけで、前のステップの結果を次のステップの`params`へ自動的に注入する機能（テンプレート的な置換）は無い。必要になったら拡張する。
 
+### 実行前にadapterクラスパスを一括検証する：`registry.py`
+
+`execute()`は実行を始める前に、pipeline内の全`adapter`クラスパスが正しくロードできるかを
+`registry.validate_pipeline()`で一括検証する。1つでも不正なら、**どのステップも実行せずに**`False`を返す
+（実行途中で発覚して一部のステップだけ実行済み、という事故を防ぐ）。
+
+```python
+from orchestrator.registry import validate_pipeline
+
+errors = validate_pipeline(pipeline)  # 空リストなら全て正常
+```
+
+`load_adapter_class(class_path)`（動的import + BaseAdapterサブクラス検証）が、事前検証と
+実行時ロードの両方から呼ばれる共通ロジック。
+
 #### workflow.yamlの書式
 
 ```yaml
@@ -113,6 +128,8 @@ pytest orchestrator/tests -m "not hardware"
   `test_support`が解決できなくなる）が発生するため、パッケージごとに名前を分けている。
 - `test_context.py`：`Context`の`record`/`last_result_for`単体、および`GenericOrchestrator.execute()`が
   各ステップの結果を正しく記録すること（steps形式で上書きされないこと、呼び出しのたびにリセットされること）を検証
+- `test_registry.py`：`load_adapter_class`/`validate_pipeline`の単体テスト
+  （正常系、adapter指定漏れ、BaseAdapter非継承、存在しないモジュール、複数エラーの収集）
 
 実機（USBカメラ）を使った動作確認は`main.py`、または`integrationtest/`の`@pytest.mark.hardware`が
 付いたテストを参照。

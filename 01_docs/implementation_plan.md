@@ -117,7 +117,14 @@ Step 6  PlantUML -> DSL 変換（学習計画Phase6相当） ✅ 完了
            convert()の出力をファイル書き出し無しで直接実行できるように
          - integrationtest/test_plantuml_to_execution.py で通し（PlantUML→変換→実行）を検証
          - 詳細は[08_plantuml_conversion_design_policy.md](decisions/08_plantuml_conversion_design_policy.md)参照
-Step 7  最終統合・リファクタリング（学習計画Phase9相当） ⬜ 未着手
+Step 7  最終統合・リファクタリング（学習計画Phase9相当） ✅ 完了
+         - context.py: 各execute_stepの結果を実行順の履歴として保持するContextを追加
+           （[10](decisions/10_context_step_history.md)）
+         - registry.py: pipeline内の全adapterクラスパスを実行前に一括検証。
+           1つでも不正なら、どのステップも実行せずに停止するよう変更
+           （[11](decisions/11_registry_pipeline_validation.md)）
+         - 学習計画Phase9の「総合演習」で挙げられているFile/HTTP等の追加Adapterは、
+           Phase7と同様に意図的にスコープ外のまま（任意課題）
 ```
 
 ## ロードマップ外で追加的に決定・実施した事項
@@ -138,15 +145,19 @@ Step 7  最終統合・リファクタリング（学習計画Phase9相当） �
 
 ## 現時点で残っている未完了タスク
 
-（2026-08-19時点で更新）
+（2026-08-22時点で更新。Step0〜7は全て対応済みのため消し込み）
 
-1. Step7：`registry.py`（クラスパスの起動時一括検証）← 次はこれ
+ロードマップ本線（Step0〜7）は完了。残るのは学習計画のオプション項目のみ：
+
+1. Phase1・2・4（仮想LED・Fake中心の基礎練習。当初から先行着手のため後回しにしていた）
+2. Phase7（ファイルController・ローカルHTTP Controller・FakeSerial）
+3. Phase9の追加課題（File/HTTP等の他Adapterでの総合演習の拡張）
 
 対応済み：
 - 同一Adapterインスタンスを複数アクションで使い回す仕組み（`steps`形式、[06](decisions/06_workflow_yaml_usage.md)参照）
 - `adapters/usb_camera_adapter`（別GitHubリポジトリ）へのsrc/tests実装のpush完了
   （`.gitignore`未整備だったため新規作成し、`img/`等の生成物を除外した上でpush）
-- `context.py`：各ステップの実行結果を履歴として保持する`Context`を追加（[10](decisions/10_context_step_history.md)）
+- `context.py`/`registry.py`によるStep7の最終統合（[10](decisions/10_context_step_history.md)・[11](decisions/11_registry_pipeline_validation.md)）
 
 ---
 

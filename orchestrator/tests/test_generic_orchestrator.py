@@ -243,6 +243,34 @@ def test_execute_steps_format_raise_stops_remaining_substeps_but_teardown_runs()
     assert FakePipelineAdapter.events == ["setup", "execute:step1", "teardown"]
 
 
+def test_execute_stops_before_any_step_when_pipeline_has_invalid_adapter():
+    # registry.validate_pipeline()による事前検証: 1つでも不正なadapterがあれば、
+    # 正常なステップも含めて何一つ実行されない（実行途中で一部だけ実行済み、を防ぐ）
+    FakePipelineAdapter.events.clear()
+    orchestrator = GenericOrchestrator()
+
+    pipeline = [
+        {
+            "name": "正常なステップ（本来は実行されるはず）",
+            "adapter": FAKE_ADAPTER_PATH,
+            "action": "do_something",
+            "params": {},
+        },
+        {
+            "name": "不正なadapter指定",
+            "adapter": "builtins.dict",
+            "action": "do_something",
+            "params": {},
+        },
+    ]
+
+    result = asyncio.run(orchestrator.execute(pipeline))
+
+    assert result is False
+    # 正常なステップも含めて、setupすら1度も呼ばれていない
+    assert FakePipelineAdapter.events == []
+
+
 def test_execute_mixes_legacy_and_steps_format_in_same_pipeline():
     orchestrator = GenericOrchestrator()
 
