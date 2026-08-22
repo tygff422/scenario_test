@@ -142,6 +142,14 @@ Step 7  最終統合・リファクタリング（学習計画Phase9相当） �
 - フォルダ構成全体の棚卸しと6件の掃除（[07](decisions/07_folder_structure_cleanup.md)）
 - ルートリポジトリのGit初期化・GitHub連携（`https://github.com/tygff422/scenario_test`）
 - PlantUML変換（Step6）の設計方針決定（[08](decisions/08_plantuml_conversion_design_policy.md)）
+- `execute_step`の非同期化（[09](decisions/09_async_execute_step.md)）
+- 同一Adapterインスタンスを複数アクションで使い回す`steps`形式（[06](decisions/06_workflow_yaml_usage.md)）
+- ステップ実行結果の履歴保持`Context`（[10](decisions/10_context_step_history.md)）
+- pipeline実行前のクラスパス一括検証`registry.py`（[11](decisions/11_registry_pipeline_validation.md)）
+- 必須課題の棚卸しと解消：正規実行入口・`GenericOrchestrator`実機検証・LED二重チェック
+  （[12](decisions/12_essential_gaps_found.md)）
+- 撮影画像・ログの永続化仕様の決定と実装（[13](decisions/13_log_and_artifact_storage_gap.md)）
+- 実行ファイル・ログ・成果物を`testexecutor/`フォルダへ集約（[14](decisions/14_testexecutor_folder.md)）
 
 ## 現時点で残っている未完了タスク
 

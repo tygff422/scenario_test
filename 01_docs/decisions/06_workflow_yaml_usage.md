@@ -43,6 +43,8 @@ def execute_step(self, action, params):
     resolution = params.get("resolution")            # ← ②として使用
 ```
 
+`CameraAdapter`は①として`img_dir`（撮影画像の保存先を上書きしたい場合）も受け取れる（[14](14_testexecutor_folder.md)）。`workflow.yaml`に直接書く場合はハードコードになるが、`testexecutor/run_scenario.py`のように呼び出し側が変換後の`pipeline`へ実行直前に注入する使い方もできる。
+
 のように、Adapter側の実装が「このキーは①、このキーは②」と選り分けている。YAML上はキー名の使い分けルールは無いので、**Adapterを書く人が`__init__`と`execute_step`のどちらでそのキーを読むかを自分で決めて実装する**必要がある。
 
 ## 3. 1ステップの実行ライフサイクル
