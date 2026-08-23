@@ -22,5 +22,5 @@
 ## 現在の進捗
 ・完了：Step0〜7＋必須課題4件（正規実行入口testexecutor/run_scenario.py／GenericOrchestrator実機検証／LED二重チェック修正／撮影画像とログの永続化、全て実機確認済み）
 ・実施中：なし（必須タスクは全て完了）
-・次のタスク：任意課題（Phase1/2/4の基礎練習、Phase7のFile/HTTP/FakeSerial等）。特に無ければ相談
+・次のタスク：3分類の残課題（01_docs/known_issues.md=実装設計／01_docs/learning/=スキルアップ／01_docs/ai_workflow/=AI協働プロセス）を相談
 ・詳細：01_docs/implementation_plan.md 参照

@@ -31,6 +31,8 @@ PlantUML風シナリオ
 
 Phase1〜4（仮想LED・Fakeベースの基礎練習）を飛ばして、Phase5・6・8相当（Orchestrator/設定駆動パイプライン/USBカメラ）に先行着手した状態から、Step0〜Step5まで完了しました。詳細な経緯は[01_docs/decisions/](decisions/)を参照してください。新しいAdapter（Audio等）を追加する場合は[new_adapter_package_guide.md](new_adapter_package_guide.md)を参照してください。
 
+ロードマップ本線・必須課題は完了済みですが、別軸の残課題を3種類に分けて記録しています：実装・設計の技術的負債は[known_issues.md](known_issues.md)、ユーザーのスキルアップに関する課題は[learning/](learning/)、AIとの協働プロセスに関する課題は[ai_workflow/](ai_workflow/)を参照してください。
+
 ```text
 実装済み:
 - adapter_core.baseadapter.BaseAdapter (adapters/core/)
