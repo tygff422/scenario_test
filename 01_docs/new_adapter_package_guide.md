@@ -126,7 +126,7 @@ action_mapping:
 
 ## 7. scenario.pumlを更新し、必要なら成果物ディレクトリを注入する
 
-`normalizer/config/scenario.puml`にシナリオを追記して実機で通す。録音ファイル等の成果物を残したい場合、`CameraController`の`img_dir`と同じパターンを踏襲する：
+`normalizer/puml/`に新しい`.puml`ファイルを追加する（または既存の`scenario.puml`にシナリオを追記する）形で実機で通す。録音ファイル等の成果物を残したい場合、`CameraController`の`img_dir`と同じパターンを踏襲する：
 
 ```text
 Controller: audio_dirパラメータを受け取れるようにする（未指定時は後方互換のデフォルト）

@@ -23,7 +23,7 @@ from orchestrator.orchestrator import GenericOrchestrator
 THIS_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = THIS_DIR.parent
 
-SCENARIO_PATH = PROJECT_ROOT / "normalizer" / "config" / "scenario.puml"
+SCENARIO_PATH = PROJECT_ROOT / "normalizer" / "puml" / "scenario.puml"
 MAPPING_PATH = PROJECT_ROOT / "normalizer" / "config" / "mapping.yaml"
 LOG_DIR = THIS_DIR / "logs"
 IMG_DIR = THIS_DIR / "img"
