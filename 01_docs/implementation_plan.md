@@ -50,9 +50,8 @@ Phase1〜4（仮想LED・Fakeベースの基礎練習）を飛ばして、Phase5
     PlantUML風テキスト -> workflow.yaml相当のlist[dict]へ変換する純粋関数convert()
     変換ルール（lifecycle_labels/action_mapping）はconfig/mapping.yamlに外出し、load_mapping()で読込
     ファイルI/Oは一切行わない（convert()はテキスト受け取りdict列を返すだけ）
-- normalizer/config/workflow.yaml
-    パイプライン定義のYAML（adapter/action/params）。今のところ1ステップのみ、まだ手書き
-    （converter.pyの出力をここに書き出す/直接渡す配線はまだ未実装、[08](decisions/08_plantuml_conversion_design_policy.md)未確定事項2）
+- normalizer/config/scenario.puml
+    実行するPlantUMLシナリオ本体
 - normalizer/config/mapping.yaml
     PlantUMLラベル -> adapter/action/paramsの変換ルール定義
 - テスト（pytest -m "not hardware" で 21 passed, 2 deselected）

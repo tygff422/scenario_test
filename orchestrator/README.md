@@ -32,16 +32,18 @@ import asyncio
 
 from orchestrator.orchestrator import GenericOrchestrator
 
-orchestrator = GenericOrchestrator(config_path="normalizer/config/workflow.yaml")
+orchestrator = GenericOrchestrator(config_path="path/to/your_workflow.yaml")
 result = asyncio.run(orchestrator.execute_pipeline())  # 全ステップ成功でTrue
 ```
 
 `execute_pipeline()`はasync（Step5で非同期化済み）。`setup()`/`teardown()`（`with`構文）はsyncのままで、`execute_step()`だけが`await`対象。`BaseAdapter`を実装する側も`execute_step`を`async def`にする必要がある。
 
+**注意**：`normalizer/config/workflow.yaml`という実ファイルはもう存在しない（2026-08-24削除）。`testexecutor/run_scenario.py`（正規の実行入口）は下記の`execute()`（メモリ直渡し）を使っており、ファイル経由の`execute_pipeline()`は現状どこからも呼ばれていない。API自体はテストで検証されており有効だが、使う場合は自分でYAMLファイルを用意する必要がある。
+
 ### 既にパース済みのpipelineを直接渡す：`execute()`
 
 `execute_pipeline()`はYAMLファイルを読む前提だが、`normalizer.converter.convert()`のようにメモリ上で
-`list[dict]`を作った場合は、ファイルに書き出さず直接`execute()`へ渡せる（Step6、[08](../01_docs/decisions/08_plantuml_conversion_design_policy.md)）。
+`list[dict]`を作った場合は、ファイルに書き出さず直接`execute()`へ渡せる（Step6、[08](../01_docs/decisions/08_plantuml_conversion_design_policy.md)）。`testexecutor/run_scenario.py`が実際にこの経路を使っている。
 
 ```python
 import asyncio
