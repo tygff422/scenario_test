@@ -1,0 +1,452 @@
+<title>Capture Pipeline Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700&family=Zen+Old+Mincho:wght@400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #f4f1ea;
+    --surface: #ffffff;
+    --surface-2: #ece7dc;
+    --border: #d9d2c2;
+    --text: #24211b;
+    --text-dim: #6b6455;
+    --accent: #c8461a;
+    --accent-soft: #c8461a1a;
+    --accent-2: #2e8c7f;
+    --accent-2-soft: #2e8c7f1a;
+    --shadow: 0 1px 2px rgba(30, 24, 12, 0.06), 0 8px 24px rgba(30, 24, 12, 0.05);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14181d;
+      --surface: #1c222a;
+      --surface-2: #232b34;
+      --border: #333e4a;
+      --text: #e9e6df;
+      --text-dim: #93a0ab;
+      --accent: #e0592a;
+      --accent-soft: #e0592a26;
+      --accent-2: #56c2b3;
+      --accent-2-soft: #56c2b326;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 32px rgba(0, 0, 0, 0.35);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #14181d;
+    --surface: #1c222a;
+    --surface-2: #232b34;
+    --border: #333e4a;
+    --text: #e9e6df;
+    --text-dim: #93a0ab;
+    --accent: #e0592a;
+    --accent-soft: #e0592a26;
+    --accent-2: #56c2b3;
+    --accent-2-soft: #56c2b326;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 32px rgba(0, 0, 0, 0.35);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Zen Old Mincho", "Hiragino Mincho ProN", serif;
+    line-height: 1.75;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 56px 24px 96px;
+  }
+
+  h1, h2, .eyebrow {
+    font-family: "Zen Kaku Gothic New", "Hiragino Sans", sans-serif;
+  }
+
+  header.hero {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 48px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .eyebrow {
+    font-size: 12.5px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  h1 {
+    font-size: clamp(28px, 4vw, 38px);
+    font-weight: 700;
+    margin: 0;
+    text-wrap: balance;
+    letter-spacing: 0.01em;
+  }
+
+  .lede {
+    font-size: 16px;
+    color: var(--text-dim);
+    max-width: 62ch;
+    margin: 4px 0 0;
+  }
+
+  .lede code, figcaption code {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.88em;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 1px 6px;
+    border-radius: 3px;
+  }
+
+  section { margin-top: 64px; }
+
+  h2 {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin: 0 0 20px;
+  }
+
+  figure {
+    margin: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 28px 20px 20px;
+    box-shadow: var(--shadow);
+  }
+
+  .diagram-scroll {
+    overflow-x: auto;
+  }
+
+  svg.diagram {
+    display: block;
+    width: 100%;
+    height: auto;
+    min-width: 720px;
+  }
+
+  svg.diagram text {
+    fill: currentColor;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+  }
+
+  svg.diagram .label {
+    font-size: 11px;
+    fill: var(--text-dim);
+  }
+
+  svg.diagram .filename {
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  svg.diagram .caption-sm {
+    font-size: 9.5px;
+    fill: var(--text-dim);
+  }
+
+  svg.diagram .node {
+    fill: var(--surface-2);
+    stroke: var(--border);
+    stroke-width: 1.2;
+  }
+
+  svg.diagram .node-accent {
+    fill: var(--accent-soft);
+    stroke: var(--accent);
+  }
+
+  svg.diagram .flow {
+    stroke: var(--text-dim);
+    stroke-width: 1.4;
+    fill: none;
+  }
+
+  svg.diagram .flow-accent {
+    stroke: var(--accent);
+    stroke-width: 1.4;
+    fill: none;
+  }
+
+  svg.diagram .flow-stop {
+    stroke: var(--accent);
+    stroke-width: 1.3;
+    stroke-dasharray: 3 3;
+    fill: none;
+  }
+
+  figcaption {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    font-size: 13.5px;
+    color: var(--text-dim);
+    font-family: "Zen Old Mincho", serif;
+  }
+
+  /* folder map */
+  .folders {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .pkg {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .pkg-head {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 16px;
+    background: var(--surface-2);
+    color: var(--text);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .pkg-row {
+    display: grid;
+    grid-template-columns: minmax(200px, 1fr) 2fr;
+    gap: 16px;
+    padding: 9px 16px;
+    font-size: 13px;
+    align-items: baseline;
+  }
+
+  .pkg-row + .pkg-row { border-top: 1px dashed var(--border); }
+
+  .pkg-row .path {
+    font-family: "JetBrains Mono", monospace;
+    color: var(--accent-2);
+    word-break: break-all;
+  }
+
+  .pkg-row .desc {
+    color: var(--text-dim);
+    font-family: "Zen Old Mincho", serif;
+  }
+
+  /* status */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+  }
+
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .stat .n {
+    font-family: "JetBrains Mono", monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 22px;
+    font-weight: 600;
+  }
+
+  .stat .n.done { color: var(--accent-2); }
+  .stat .n.open { color: var(--accent); }
+
+  .stat .l {
+    font-size: 12.5px;
+    color: var(--text-dim);
+    font-family: "Zen Kaku Gothic New", sans-serif;
+  }
+
+  footer {
+    margin-top: 72px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    figure { animation: rise 0.5s ease-out both; }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  }
+</style>
+
+<div class="page">
+
+  <header class="hero">
+    <span class="eyebrow">scenario_test &middot; 2026-08-27 時点</span>
+    <h1>シナリオが写真になるまで</h1>
+    <p class="lede"><code>testexecutor/run_scenario.py</code>を実行すると、シナリオが変換され、検証され、実機カメラを動かし、ファイルとして残るまでが一本道でつながる。</p>
+  </header>
+
+  <section>
+    <h2>変換・実行経路</h2>
+    <figure>
+      <div class="diagram-scroll">
+        <svg class="diagram" viewBox="0 0 1350 300" role="img" aria-label="testexecutor/run_scenario.pyがscenario.pumlを直接読み込み、そのテキストとmapping.yamlのPathの両方をconverter.pyへ渡す。scenario.pumlとconverter.pyの間に直接の関係は無い。mapping.yamlの中身はconverter.pyのload_mapping()が自分で開いて読む。converter.pyがこれらを合流させてpipelineのdictを作る。GenericOrchestratorが実行前にregistryで一括検証し、不正なら何も実行せず停止する。検証を通れば、CameraAdapter/CameraControllerが接続・撮影・切断を行い、結果がtestexecutorのimg/とlogs/に保存される。">
+          <defs>
+            <marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L8,4 L0,8 z" fill="currentColor" />
+            </marker>
+            <marker id="arrow-accent" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L8,4 L0,8 z" fill="var(--accent)" />
+            </marker>
+          </defs>
+
+          <!-- run_scenario.py: entry point -->
+          <rect class="node-accent" x="20" y="112" width="150" height="66" rx="3" />
+          <text class="filename" x="95" y="140" text-anchor="middle">run_scenario.py</text>
+          <text class="caption-sm" x="95" y="156" text-anchor="middle">正規の実行入口</text>
+
+          <!-- scenario.puml (upper) -->
+          <rect class="node" x="230" y="30" width="140" height="56" rx="3" />
+          <text class="filename" x="300" y="55" text-anchor="middle">scenario.puml</text>
+          <text class="caption-sm" x="300" y="70" text-anchor="middle">シナリオ本体</text>
+
+          <!-- mapping.yaml (lower) -->
+          <rect class="node" x="230" y="204" width="140" height="56" rx="3" />
+          <text class="filename" x="300" y="229" text-anchor="middle">mapping.yaml</text>
+          <text class="caption-sm" x="300" y="244" text-anchor="middle">変換ルール</text>
+
+          <!-- scenario.puml -> run_scenario.py: 内容が読み込まれる（データが流れ込む向き） -->
+          <line class="flow" x1="222" y1="63" x2="170" y2="135" marker-end="url(#arrow)" />
+          <text class="label" x="178" y="90" text-anchor="middle">直接読まれる</text>
+
+          <!-- convert() -->
+          <rect class="node" x="430" y="112" width="150" height="66" rx="3" />
+          <text class="filename" x="505" y="140" text-anchor="middle">converter.py</text>
+          <text class="caption-sm" x="505" y="156" text-anchor="middle">convert() / load_mapping()</text>
+
+          <!-- run_scenario.py -> convert(): 読んだtextをそのまま渡す（scenario.pumlとconverter.pyに直接の関係は無い） -->
+          <line class="flow" x1="170" y1="136" x2="430" y2="130" marker-end="url(#arrow)" />
+          <text class="label" x="300" y="122" text-anchor="middle">scenario text</text>
+
+          <!-- run_scenario.py -> convert(): mapping.yamlのPathを渡すだけ（中身はまだ渡していない） -->
+          <line class="flow" x1="170" y1="154" x2="430" y2="150" marker-end="url(#arrow)" />
+          <text class="label" x="300" y="175" text-anchor="middle">mapping.yamlのPath</text>
+
+          <!-- mapping.yaml -> convert(): 実際に開いて読むのはconverter.py側（load_mapping()） -->
+          <line class="flow" x1="370" y1="227" x2="430" y2="165" marker-end="url(#arrow)" />
+          <text class="label" x="392" y="212" text-anchor="middle">load_mapping()が読む</text>
+
+          <!-- arrow: convert() -> gate -->
+          <line class="flow" x1="580" y1="145" x2="582" y2="145" marker-end="url(#arrow)" />
+          <text class="label" x="640" y="98" text-anchor="middle">pipeline: list[dict]</text>
+
+          <!-- gate diamond: registry.validate_pipeline() -->
+          <polygon class="node-accent" points="615,120 648,145 615,170 582,145" />
+          <text class="caption-sm" x="615" y="149" text-anchor="middle" font-weight="600">OK?</text>
+
+          <!-- gate -> orchestrator -->
+          <line class="flow" x1="648" y1="145" x2="680" y2="145" marker-end="url(#arrow)" />
+
+          <!-- gate -> stop (dashed) -->
+          <line class="flow-stop" x1="615" y1="170" x2="615" y2="222" marker-end="url(#arrow-accent)" />
+          <rect class="node-accent" x="530" y="222" width="170" height="40" rx="3" />
+          <text class="caption-sm" x="615" y="240" text-anchor="middle" font-weight="600">不正なら何も実行せず停止</text>
+          <text class="caption-sm" x="615" y="253" text-anchor="middle">registry.py</text>
+
+          <!-- GenericOrchestrator.execute() -->
+          <rect class="node" x="680" y="112" width="190" height="66" rx="3" />
+          <text class="filename" x="775" y="136" text-anchor="middle">orchestrator.py</text>
+          <text class="caption-sm" x="775" y="151" text-anchor="middle">execute() が1ステップずつ実行</text>
+          <text class="caption-sm" x="775" y="163" text-anchor="middle">結果を context に記録</text>
+
+          <!-- arrow: orchestrator -> adapter -->
+          <line class="flow" x1="870" y1="145" x2="900" y2="145" marker-end="url(#arrow)" />
+          <text class="label" x="885" y="98" text-anchor="middle">execute_step()</text>
+
+          <!-- CameraAdapter / Controller -->
+          <rect class="node" x="900" y="112" width="210" height="66" rx="3" />
+          <text class="filename" x="1005" y="132" text-anchor="middle">camera_adapter.py</text>
+          <text class="caption-sm" x="1005" y="147" text-anchor="middle">接続 → 撮影 → 切断</text>
+          <text class="caption-sm" x="1005" y="160" text-anchor="middle">camera_controller.py が実機操作</text>
+
+          <!-- arrow: adapter -> output -->
+          <line class="flow" x1="1110" y1="145" x2="1140" y2="145" marker-end="url(#arrow)" />
+          <text class="label" x="1125" y="98" text-anchor="middle">保存</text>
+
+          <!-- output -->
+          <rect class="node" x="1140" y="112" width="190" height="66" rx="3" />
+          <text class="filename" x="1235" y="132" text-anchor="middle">testexecutor/</text>
+          <text class="caption-sm" x="1235" y="148" text-anchor="middle">img/ ─ 撮影画像</text>
+          <text class="caption-sm" x="1235" y="161" text-anchor="middle">logs/ ─ 実行ログ</text>
+        </svg>
+      </div>
+      <figcaption><code>run_scenario.py</code>がシナリオを直接読み込み、そのテキストと mapping.yaml の Path の両方を converter.py へ渡す（scenario.puml と converter.py に直接の関係は無い）。mapping.yaml の中身は converter.py の load_mapping() が自分で開いて読む。converter.py で両者を合流させて実行計画（pipeline）を作る。GenericOrchestrator は実行前に registry で全ステップを検証し、1つでも不正なら何も実行せず止まる。通れば CameraAdapter が実機を動かし、結果は testexecutor 配下に残る。</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2>実体のあるフォルダ</h2>
+    <div class="folders">
+
+      <div class="pkg">
+        <div class="pkg-head">normalizer/</div>
+        <div class="pkg-row"><span class="path">puml/scenario.puml</span><span class="desc">実行するシナリオ本体。今後 .puml を増やしていく置き場</span></div>
+        <div class="pkg-row"><span class="path">config/mapping.yaml</span><span class="desc">PlantUMLのラベル → adapter/action/params の変換ルール</span></div>
+        <div class="pkg-row"><span class="path">src/normalizer/converter.py</span><span class="desc">convert() / load_mapping()。ファイルを読み書きしない純粋関数</span></div>
+      </div>
+
+      <div class="pkg">
+        <div class="pkg-head">orchestrator/</div>
+        <div class="pkg-row"><span class="path">src/orchestrator/orchestrator.py</span><span class="desc">GenericOrchestrator。pipelineを1ステップずつ実行</span></div>
+        <div class="pkg-row"><span class="path">src/orchestrator/registry.py</span><span class="desc">実行前にadapterクラスパスを一括検証</span></div>
+        <div class="pkg-row"><span class="path">src/orchestrator/context.py</span><span class="desc">各ステップの実行結果を履歴として保持</span></div>
+      </div>
+
+      <div class="pkg">
+        <div class="pkg-head">adapters/</div>
+        <div class="pkg-row"><span class="path">core/</span><span class="desc">BaseAdapter。全Adapter共通の契約(setup/execute_step/teardown)</span></div>
+        <div class="pkg-row"><span class="path">usb_camera_adapter/</span><span class="desc">CameraAdapter / CameraController。別GitHubリポジトリで管理</span></div>
+      </div>
+
+      <div class="pkg">
+        <div class="pkg-head">testexecutor/</div>
+        <div class="pkg-row"><span class="path">run_scenario.py</span><span class="desc">正規の実行入口。上の図の一連の流れをこの1本が順番に呼ぶ</span></div>
+        <div class="pkg-row"><span class="path">img/ , logs/</span><span class="desc">実行のたびに増える成果物（.gitignore済み）</span></div>
+      </div>
+
+    </div>
+  </section>
+
+  <section>
+    <h2>現在地</h2>
+    <div class="stats">
+      <div class="stat"><span class="n done">0–7</span><span class="l">ロードマップ Step 完了</span></div>
+      <div class="stat"><span class="n done">4</span><span class="l">必須課題 解消済み</span></div>
+      <div class="stat"><span class="n open">7</span><span class="l">実装・設計の残課題</span></div>
+      <div class="stat"><span class="n open">3</span><span class="l">learning/ の記録</span></div>
+    </div>
+  </section>
+
+  <footer>
+    01_docs/implementation_plan.md ・ 01_docs/decisions/ を正としたスナップショット。実装が進むと古くなります。
+  </footer>
+
+</div>
