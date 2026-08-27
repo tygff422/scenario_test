@@ -4,22 +4,76 @@
 
 このガイドは「今どうすればいいか」を示す生きた文書。各ステップの詳しい経緯・理由は`decisions/`内の該当ドキュメントにリンクしている。
 
-## 全体の流れ
+## 正式な流れ（2026-08-27改訂）
 
 ```text
-1. 新パッケージを作る
-2. Controller → Adapter の順で実装
-3. pyproject.tomlを作り、rootに登録する
-4. Fakeを作り、テストを書く
-5. mapping.yamlに変換ルールを追記する
-6. Orchestrator側は無改修（設計上の到達点）
-7. scenario.pumlを更新し、成果物ディレクトリが必要なら注入パターンを踏襲する
-8. ドキュメント化する
+要件定義 → 設計・クラス図作成 → 1つずつ実装 → テスト
 ```
+
+以前は「1. 新パッケージを作る」から始まる8ステップの実装手順だけを並べていたが、**実装に入る前に要件定義とクラス図を作る**流れに改めた。理由：実装内容の設計意図を利用者が自分の言葉で説明できるレベルで理解する、という目的（CLAUDE.md「実装作業の説明順序」）に対して、口頭の説明だけでなく**書面の設計成果物**として残す方が定着しやすいため。
+
+## 記録先
+
+新しい機能ごとに`01_docs/decisions/`へ新規番号でファイルを作り、以下の4つの見出しを必ず立てる。
+
+```text
+01_docs/decisions/NN_<name>.md
+  ## 要件定義
+  ## 設計・クラス図
+  ## 実装
+  ## テスト
+```
+
+**フォルダを4つ（要件定義/・設計/・実装/・テスト/）に分けるのは避ける**。1つの機能の話が複数フォルダに散らばると、後から全体像を追いにくくなるため（`known_issues.md`・`learning/`を整理した時と同じ教訓）。1機能=1ファイルで完結させ、中身をフェーズ見出しで区切る。クラス図が大きくなったら、`decisions/NN_<name>/`という小さいフォルダに格上げし、`class_diagram.puml`を隣に置く形へ拡張してよい。
 
 ---
 
-## 1. 新パッケージを作る
+## 1. 要件定義
+
+軽くてよい。**目的（1〜2行）＋入出力**が書ければ十分。分厚い要件定義書は不要。
+
+```text
+例（AudioAdapter）：
+目的：マイクから音声を録音し、ファイルとして残す
+入力：録音時間（duration_sec）
+出力：{"status": "SUCCESS"|"FAILED", "saved_path": str|None}
+```
+
+## 2. 設計・クラス図
+
+PlantUMLのクラス図記法で書く（`scenario.puml`と同じ道具を使い、道具を増やさない）。
+
+```plantuml
+@startuml
+class AudioController {
+  +open(): bool
+  +release(): void
+  +record(duration_sec): bytes
+  +save_recording(data, audio_dir): Path
+}
+class AudioAdapter {
+  +setup(): bool
+  +execute_step(action, params): dict
+  +teardown(): void
+}
+AudioAdapter --> AudioController : 使う
+BaseAdapter <|-- AudioAdapter
+@enduml
+```
+
+設計時に意識する既存ルール（過去の失敗から学んだもの）：
+
+- `setup()`は接続確認のみに絞る。「確認」を複数箇所で重複してやらない
+  （`CameraAdapter.setup()`が`Orchestrator.execute()`と二重にLED確認していたバグの教訓、[12](decisions/12_essential_gaps_found.md)）
+- `execute_step()`は必ず`async def`。ブロッキングI/Oは`asyncio.to_thread`で分離（[09](decisions/09_async_execute_step.md)）
+- `params`のキー設計・constructorとexecute_stepの使い分けは[06](decisions/06_workflow_yaml_usage.md)を参照
+- InterfaceとFakeは、本物のControllerに合わせる（Fakeの都合でInterfaceを緩めない、Liskov置換。[03](decisions/03_package_settings_adapter_orchestrator.md)）
+
+## 3. 1つずつ実装
+
+クラス図で決めたクラスを、Controller → Adapter の順に、1つずつ実装する。
+
+### 3-1. 新パッケージを作る
 
 `adapters/<name>_adapter/`に、`usb_camera_adapter`と同じ構成を作る。別リポジトリにする必然性は無い（`usb_camera_adapter`が別リポジトリなのは元々別プロジェクトだった経緯によるもので、意図した設計原則ではない。[03](decisions/03_package_settings_adapter_orchestrator.md)参照）。モノレポ内で完結させてよい。
 
@@ -38,42 +92,7 @@ adapters/<name>_adapter/
     test_support/<name>_mock_controller.py    ← Fake
 ```
 
-## 2. Controller → Adapterの順で実装する
-
-**Controllerが先。** 実際のI/Oを1つずつ行うだけの層（sync）。
-
-```python
-class AudioController:
-    def open(self) -> bool: ...
-    def release(self) -> None: ...
-    def record(self, duration_sec: float) -> bytes | None: ...
-    def save_recording(self, data, audio_dir=None) -> Path | None: ...
-```
-
-**Adapterは`BaseAdapter`（`adapter_core.baseadapter`）を継承**する。
-
-```python
-class AudioAdapter(BaseAdapter):
-    def setup(self) -> bool:
-        return self.controller.open()   # openのみ。確認処理を混ぜない
-
-    async def execute_step(self, action, params) -> dict:  # 必ずasync def（09参照）
-        data = await asyncio.to_thread(self.controller.record, params.get("duration_sec", 3))
-        return {"status": "SUCCESS" if data else "FAILED", ...}
-
-    def teardown(self) -> None:
-        self.controller.release()
-```
-
-**設計ルール**（過去の失敗から学んだもの）：
-
-- `setup()`は接続確認のみに絞る。「確認」を複数箇所で重複してやらない
-  （`CameraAdapter.setup()`が`Orchestrator.execute()`と二重にLED確認していたバグの教訓、[12](decisions/12_essential_gaps_found.md)）
-- `execute_step()`は必ず`async def`。ブロッキングI/Oは`asyncio.to_thread`で分離（[09](decisions/09_async_execute_step.md)）
-- `params`のキー設計・constructorとexecute_stepの使い分けは[06](decisions/06_workflow_yaml_usage.md)を参照
-- InterfaceとFakeは、本物のControllerに合わせる（Fakeの都合でInterfaceを緩めない、Liskov置換。[03](decisions/03_package_settings_adapter_orchestrator.md)）
-
-## 3. pyproject.tomlを作り、rootに登録する
+### 3-2. pyproject.tomlを作り、rootに登録する
 
 ```toml
 # adapters/<name>_adapter/pyproject.toml（usb_camera_adapterの例に倣う）
@@ -100,11 +119,7 @@ adapter-core = { workspace = true }
 
 **要注意**：`members`に足すだけでは共有venvにインストールされない。`dependencies`への明示登録も必須（`normalizer`追加時に実際に踏んだ落とし穴、[01](decisions/01_import_resolution_rules.md)訂正参照）。
 
-## 4. Fakeを作り、テストを書く
-
-`<name>_mock_controller.py`（Interfaceを実装したFake）を`tests/test_support/`に置き、実機なしで`setup → execute_step → teardown`のライフサイクルを検証する。実機依存のテストは`@pytest.mark.hardware`で分離（[03](decisions/03_package_settings_adapter_orchestrator.md)）。
-
-## 5. mapping.yamlに変換ルールを追記する
+### 3-3. mapping.yamlに変換ルールを追記する
 
 `normalizer/config/mapping.yaml`にエントリを足すだけ。コード変更は不要（[08](decisions/08_plantuml_conversion_design_policy.md)）。
 
@@ -120,13 +135,13 @@ action_mapping:
       duration_sec: 3
 ```
 
-## 6. Orchestrator側は無改修（この設計の到達点）
+### 3-4. Orchestrator側は無改修（この設計の到達点）
 
 `GenericOrchestrator`・`registry.py`（事前検証）・`context.py`（結果履歴）は全てクラスパス文字列ベースで汎用化されているため、新しいAdapterを追加してもこれらのファイルには一切手を入れない（[10](decisions/10_context_step_history.md)・[11](decisions/11_registry_pipeline_validation.md)）。同じ接続で複数アクションを実行したい場合は`steps`形式が使える（[06](decisions/06_workflow_yaml_usage.md)）。
 
-## 7. scenario.pumlを更新し、必要なら成果物ディレクトリを注入する
+### 3-5. scenario.pumlを更新し、必要なら成果物ディレクトリを注入する
 
-`normalizer/puml/`に新しい`.puml`ファイルを追加する（または既存の`scenario.puml`にシナリオを追記する）形で実機で通す。録音ファイル等の成果物を残したい場合、`CameraController`の`img_dir`と同じパターンを踏襲する：
+`normalizer/puml/`に新しい`.puml`ファイルを追加する（または既存の`scenario.puml`にシナリオを追記する）。録音ファイル等の成果物を残したい場合、`CameraController`の`img_dir`と同じパターンを踏襲する：
 
 ```text
 Controller: audio_dirパラメータを受け取れるようにする（未指定時は後方互換のデフォルト）
@@ -136,6 +151,8 @@ run_scenario.py: 実行直前にpipelineのparamsへtestexecutor/audio/の絶対
 
 詳細と設計理由は[13](decisions/13_log_and_artifact_storage_gap.md)・[14](decisions/14_testexecutor_folder.md)を参照。
 
-## 8. ドキュメント化する
+## 4. テスト
 
-`01_docs/decisions/`に新規番号でdecisionを作り、Controller/Adapterの設計判断を記録する。`01_docs/implementation_plan.md`の進捗欄も更新する。
+- Fakeを作り（`<name>_mock_controller.py`、`tests/test_support/`）、実機なしで`setup → execute_step → teardown`のライフサイクルを検証する
+- 実機依存のテストは`@pytest.mark.hardware`で分離する（[03](decisions/03_package_settings_adapter_orchestrator.md)）
+- 最後に`testexecutor/run_scenario.py`を実機で実行し、通しで動くことを確認する（[12](decisions/12_essential_gaps_found.md)の教訓：作ったら都度、実機で検証する）
