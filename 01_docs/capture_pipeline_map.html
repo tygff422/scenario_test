@@ -342,13 +342,10 @@
           <text class="filename" x="505" y="140" text-anchor="middle">converter.py</text>
           <text class="caption-sm" x="505" y="156" text-anchor="middle">convert() / load_mapping()</text>
 
-          <!-- run_scenario.py -> convert(): 読んだtextをそのまま渡す（scenario.pumlとconverter.pyに直接の関係は無い） -->
-          <line class="flow" x1="170" y1="136" x2="430" y2="130" marker-end="url(#arrow)" />
-          <text class="label" x="300" y="122" text-anchor="middle">scenario text</text>
-
-          <!-- run_scenario.py -> convert(): mapping.yamlのPathを渡すだけ（中身はまだ渡していない） -->
-          <line class="flow" x1="170" y1="154" x2="430" y2="150" marker-end="url(#arrow)" />
-          <text class="label" x="300" y="175" text-anchor="middle">mapping.yamlのPath</text>
+          <!-- run_scenario.py -> convert(): textとmapping.yamlのPath、両方を1本にまとめて渡す -->
+          <line class="flow" x1="170" y1="145" x2="430" y2="145" marker-end="url(#arrow)" />
+          <text class="label" x="300" y="132" text-anchor="middle">scenario text</text>
+          <text class="label" x="300" y="168" text-anchor="middle">mapping.yamlのPath</text>
 
           <!-- mapping.yaml -> convert(): 実際に開いて読むのはconverter.py側（load_mapping()） -->
           <line class="flow" x1="370" y1="227" x2="430" y2="165" marker-end="url(#arrow)" />
