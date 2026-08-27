@@ -308,7 +308,7 @@
     <h2>変換・実行経路</h2>
     <figure>
       <div class="diagram-scroll">
-        <svg class="diagram" viewBox="0 0 1350 300" role="img" aria-label="testexecutor/run_scenario.pyがscenario.pumlを直接読み込み、そのテキストとmapping.yamlのPathの両方をconverter.pyへ渡す。scenario.pumlとconverter.pyの間に直接の関係は無い。mapping.yamlの中身はconverter.pyのload_mapping()が自分で開いて読む。converter.pyがこれらを合流させてpipelineのdictを作る。GenericOrchestratorが実行前にregistryで一括検証し、不正なら何も実行せず停止する。検証を通れば、CameraAdapter/CameraControllerが接続・撮影・切断を行い、結果がtestexecutorのimg/とlogs/に保存される。">
+        <svg class="diagram" viewBox="0 0 1350 300" role="img" aria-label="testexecutor/run_scenario.pyがscenario.pumlを直接読み込み、そのテキストとmapping.yamlのPathの両方をconverter.pyへ渡す。mapping.yamlの中身はconverter.pyのload_mapping()が自分で開いて読む。converter.pyがこれらを合流させてpipelineのdictを作る。GenericOrchestratorが実行前にregistryで一括検証し、不正なら何も実行せず停止する。検証を通れば、CameraAdapter/CameraControllerが接続・撮影・切断を行い、結果がtestexecutorのimg/とlogs/に保存される。">
           <defs>
             <marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
               <path d="M0,0 L8,4 L0,8 z" fill="currentColor" />
@@ -395,7 +395,7 @@
           <text class="caption-sm" x="1235" y="161" text-anchor="middle">logs/ ─ 実行ログ</text>
         </svg>
       </div>
-      <figcaption><code>run_scenario.py</code>がシナリオを直接読み込み、そのテキストと mapping.yaml の Path の両方を converter.py へ渡す（scenario.puml と converter.py に直接の関係は無い）。mapping.yaml の中身は converter.py の load_mapping() が自分で開いて読む。converter.py で両者を合流させて実行計画（pipeline）を作る。GenericOrchestrator は実行前に registry で全ステップを検証し、1つでも不正なら何も実行せず止まる。通れば CameraAdapter が実機を動かし、結果は testexecutor 配下に残る。</figcaption>
+      <figcaption><code>run_scenario.py</code>がシナリオを直接読み込み、そのテキストと mapping.yaml の Path の両方を converter.py へ渡す。mapping.yaml の中身は converter.py の load_mapping() が自分で開いて読む。converter.py で両者を合流させて実行計画（pipeline）を作る。GenericOrchestrator は実行前に registry で全ステップを検証し、1つでも不正なら何も実行せず止まる。通れば CameraAdapter が実機を動かし、結果は testexecutor 配下に残る。</figcaption>
     </figure>
   </section>
 
