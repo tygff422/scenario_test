@@ -25,3 +25,7 @@ normalizer/
 ## 確認
 
 `uv run pytest -m "not hardware" -q` → `40 passed, 3 deselected`（退行なし）。実機で`testexecutor/run_scenario.py`を実行し、`exit code 0`・撮影成功を確認済み。
+
+## 訂正（2026-08-29）：さらに`testexecutor/puml/`へ移動
+
+`normalizer/`直下に置いたこと自体は「`config/`とは分ける」という点で正しかったが、`normalizer/puml/`という置き場所自体が実はもう1段ズレていた。`scenario.puml`を実際に読んでいるのは`testexecutor/run_scenario.py`であり、`normalizer`側のコード（`converter.py`）はファイル自体の存在を一切知らない（`convert()`は文字列を受け取るだけ）。依存の向き（testexecutor→normalizer、逆は無い）に合わせ、`testexecutor/puml/`へ再度移動した。詳細は[18_scenario_puml_ownership.md](18_scenario_puml_ownership.md)参照。

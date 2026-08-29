@@ -299,7 +299,7 @@
 <div class="page">
 
   <header class="hero">
-    <span class="eyebrow">scenario_test &middot; 2026-08-27 時点</span>
+    <span class="eyebrow">scenario_test &middot; 2026-08-29 時点</span>
     <h1>シナリオが写真になるまで</h1>
     <p class="lede"><code>testexecutor/run_scenario.py</code>を実行すると、シナリオが変換され、検証され、実機カメラを動かし、ファイルとして残るまでが一本道でつながる。</p>
   </header>
@@ -405,7 +405,6 @@
 
       <div class="pkg">
         <div class="pkg-head">normalizer/</div>
-        <div class="pkg-row"><span class="path">puml/scenario.puml</span><span class="desc">実行するシナリオ本体。今後 .puml を増やしていく置き場</span></div>
         <div class="pkg-row"><span class="path">config/mapping.yaml</span><span class="desc">PlantUMLのラベル → adapter/action/params の変換ルール</span></div>
         <div class="pkg-row"><span class="path">src/normalizer/converter.py</span><span class="desc">convert() / load_mapping()。ファイルを読み書きしない純粋関数</span></div>
       </div>
@@ -426,6 +425,7 @@
       <div class="pkg">
         <div class="pkg-head">testexecutor/</div>
         <div class="pkg-row"><span class="path">run_scenario.py</span><span class="desc">正規の実行入口。上の図の一連の流れをこの1本が順番に呼ぶ</span></div>
+        <div class="pkg-row"><span class="path">puml/scenario.puml</span><span class="desc">実行するシナリオ本体。normalizerはこのファイルの存在を知らない（testexecutorが直接読んで渡す）</span></div>
         <div class="pkg-row"><span class="path">img/ , logs/</span><span class="desc">実行のたびに増える成果物（.gitignore済み）</span></div>
       </div>
 

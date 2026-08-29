@@ -50,10 +50,12 @@ Phase1〜4（仮想LED・Fakeベースの基礎練習）を飛ばして、Phase5
     PlantUML風テキスト -> workflow.yaml相当のlist[dict]へ変換する純粋関数convert()
     変換ルール（lifecycle_labels/action_mapping）はconfig/mapping.yamlに外出し、load_mapping()で読込
     ファイルI/Oは一切行わない（convert()はテキスト受け取りdict列を返すだけ）
-- normalizer/puml/scenario.puml
-    実行するPlantUMLシナリオ本体（今後複数の.pumlを追加していく置き場、[16](decisions/16_normalizer_puml_folder.md)）
 - normalizer/config/mapping.yaml
     PlantUMLラベル -> adapter/action/paramsの変換ルール定義
+- testexecutor/puml/scenario.puml
+    実行するPlantUMLシナリオ本体。normalizerはこのファイルの存在を知らず、
+    testexecutorが直接読んでconverter.pyへテキストとして渡す（呼び出し側が持つ入力、という
+    依存関係の向きに合わせてnormalizer/から移動。[18](decisions/18_scenario_puml_ownership.md)）
 - テスト（pytest -m "not hardware" で 21 passed, 2 deselected）
     orchestrator/tests/test_orchestrator.py（Mock使用）
     orchestrator/tests/test_generic_orchestrator.py（Fake使用、非同期化対応済み）
