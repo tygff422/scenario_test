@@ -1,0 +1,23 @@
+@startuml
+package "testexecutor" {
+  class paths.py {
+    +THIS_DIR: Path
+    +PROJECT_ROOT: Path
+    +SCENARIO_PATH: Path
+    +MAPPING_PATH: Path
+    +LOG_DIR: Path
+    +IMG_DIR: Path
+  }
+  class logging_setup.py {
+    +setup_file_logging(): Path
+  }
+  class run_scenario.py {
+    -_inject_img_dir(pipeline): void
+    -_summarize(result): dict
+    +run(): bool
+  }
+}
+run_scenario.py --> paths.py : 使う
+run_scenario.py --> logging_setup.py : 使う
+logging_setup.py --> paths.py : LOG_DIRを使う
+@enduml
