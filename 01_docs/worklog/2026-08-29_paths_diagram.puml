@@ -1,4 +1,4 @@
-@startuml
+@startuml paths_and_logging_setup
 package "testexecutor" {
   class paths.py {
     +THIS_DIR: Path
@@ -16,8 +16,9 @@ package "testexecutor" {
     -_summarize(result): dict
     +run(): bool
   }
+
+  run_scenario.py --> paths.py : 使う
+  run_scenario.py --> logging_setup.py : 使う
+  logging_setup.py --> paths.py : LOG_DIRを使う
 }
-run_scenario.py --> paths.py : 使う
-run_scenario.py --> logging_setup.py : 使う
-logging_setup.py --> paths.py : LOG_DIRを使う
 @enduml
