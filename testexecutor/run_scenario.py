@@ -20,7 +20,7 @@ from normalizer.converter import convert, load_mapping
 from orchestrator.orchestrator import GenericOrchestrator
 
 from logging_setup import setup_file_logging
-from paths import IMG_DIR, MAPPING_PATH, SCENARIO_PATH
+from paths import IMG_DIR, SCENARIO_PATH
 
 
 def _inject_img_dir(pipeline: list[dict]) -> None:
@@ -38,7 +38,7 @@ def _inject_img_dir(pipeline: list[dict]) -> None:
 async def run() -> bool:
     setup_file_logging()
     plantuml_text = SCENARIO_PATH.read_text(encoding="utf-8")
-    lifecycle_labels, action_mapping = load_mapping(MAPPING_PATH)
+    lifecycle_labels, action_mapping = load_mapping()
 
     pipeline = convert(plantuml_text, lifecycle_labels, action_mapping)
     _inject_img_dir(pipeline)

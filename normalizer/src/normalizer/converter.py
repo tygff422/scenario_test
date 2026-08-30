@@ -6,12 +6,21 @@ import yaml
 # `:テキスト;` の行だけを拾う（start/stop/@startuml等は無視）
 STEP_LINE = re.compile(r"^:(.+);$")
 
+# mapping.yamlはnormalizer自身が読むファイル（呼び出し側の持ち物ではない）なので、
+# デフォルトの場所を自分で知っておく。CameraController.img_dirと同じパターン
+# （01_docs/decisions/18_scenario_puml_ownership.md参照）。
+DEFAULT_MAPPING_PATH = Path(__file__).resolve().parent.parent.parent / "config" / "mapping.yaml"
 
-def load_mapping(path: str | Path) -> tuple[set[str], dict[str, dict]]:
+
+def load_mapping(path: str | Path | None = None) -> tuple[set[str], dict[str, dict]]:
     """変換ルールYAML（lifecycle_labels / action_mapping）を読み込む。
 
+    pathを省略すると、normalizer自身のconfig/mapping.yamlを読む（後方互換のデフォルト）。
+    テスト等で別のYAMLを読ませたい場合はpathを明示的に渡して上書きできる。
     ファイルを読むのはここだけに閉じ込め、convert()自体は純粋関数のまま保つ。
     """
+    path = path if path is not None else DEFAULT_MAPPING_PATH
+
     with open(path, "r", encoding="utf-8") as f:
         raw = yaml.safe_load(f) or {}
 

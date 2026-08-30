@@ -99,6 +99,21 @@ def test_load_mapping_reads_real_mapping_yaml():
     }
 
 
+def test_load_mapping_default_path_reads_real_mapping_yaml():
+    # pathを省略した場合、normalizer自身のconfig/mapping.yamlをデフォルトで読む
+    # （呼び出し側=testexecutorがmapping.yamlの場所を知らなくて済むようにするための挙動）
+    lifecycle_labels, action_mapping = load_mapping()
+
+    assert lifecycle_labels == {"カメラ接続", "カメラ切断"}
+    assert action_mapping == {
+        "カメラ画像撮影": {
+            "adapter": "camera_adapter.camera_adapter.CameraAdapter",
+            "action": "capture",
+            "params": {"resolution": [640, 480]},
+        }
+    }
+
+
 def test_load_mapping_output_is_usable_directly_by_convert():
     # load_mapping()の戻り値をそのままconvert()に渡せることを確認する結合テスト
     lifecycle_labels, action_mapping = load_mapping(MAPPING_PATH)

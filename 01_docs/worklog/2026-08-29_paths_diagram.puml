@@ -4,7 +4,6 @@ package "testexecutor" {
     +THIS_DIR: Path
     +PROJECT_ROOT: Path
     +SCENARIO_PATH: Path
-    +MAPPING_PATH: Path
     +LOG_DIR: Path
     +IMG_DIR: Path
   }

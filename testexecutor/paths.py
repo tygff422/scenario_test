@@ -10,6 +10,9 @@ THIS_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = THIS_DIR.parent
 
 SCENARIO_PATH = THIS_DIR / "puml" / "scenario.puml"
-MAPPING_PATH = PROJECT_ROOT / "normalizer" / "config" / "mapping.yaml"
 LOG_DIR = THIS_DIR / "logs"
 IMG_DIR = THIS_DIR / "img"
+
+# mapping.yamlはnormalizer自身の持ち物なので、ここでは持たない。
+# normalizer.converter.load_mapping()が自分のデフォルト位置を知っている
+# （01_docs/decisions/18_scenario_puml_ownership.md参照）。
