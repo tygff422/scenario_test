@@ -299,7 +299,7 @@
 <div class="page">
 
   <header class="hero">
-    <span class="eyebrow">scenario_test &middot; 2026-08-29 時点</span>
+    <span class="eyebrow">scenario_test &middot; 2026-09-01 時点</span>
     <h1>シナリオが写真になるまで</h1>
     <p class="lede"><code>testexecutor/run_scenario.py</code>を実行すると、シナリオが変換され、検証され、実機カメラを動かし、ファイルとして残るまでが一本道でつながる。</p>
   </header>
@@ -308,7 +308,7 @@
     <h2>変換・実行経路</h2>
     <figure>
       <div class="diagram-scroll">
-        <svg class="diagram" viewBox="0 0 1350 300" role="img" aria-label="testexecutor/run_scenario.pyがscenario.pumlを直接読み込み、そのテキストとmapping.yamlのPathの両方をconverter.pyへ渡す。mapping.yamlの中身はconverter.pyのload_mapping()が自分で開いて読む。converter.pyがこれらを合流させてpipelineのdictを作る。GenericOrchestratorが実行前にregistryで一括検証し、不正なら何も実行せず停止する。検証を通れば、CameraAdapter/CameraControllerが接続・撮影・切断を行い、結果がtestexecutorのimg/とlogs/に保存される。">
+        <svg class="diagram" viewBox="0 0 1350 300" role="img" aria-label="testexecutor/run_scenario.pyがscenario.pumlを直接読み込み、そのテキストだけをconverter.pyへ渡す。mapping.yamlはconverter.py自身が既定パスで直接読む（testexecutorはmapping.yamlの存在を知らない）。converter.pyがこれらを合流させてsteps形式のpipelineを作る。GenericOrchestratorが実行前にregistryで一括検証し、不正なら何も実行せず停止する。GenericOrchestrator.execute()はメモリ上のpipelineをそのまま実行し、YAMLファイルは一切読まない。検証を通れば、CameraAdapter/CameraControllerが接続・撮影(または状態確認)・切断を行い、結果がtestexecutorのimg/とlogs/に保存される。">
           <defs>
             <marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
               <path d="M0,0 L8,4 L0,8 z" fill="currentColor" />
@@ -342,14 +342,14 @@
           <text class="filename" x="505" y="140" text-anchor="middle">converter.py</text>
           <text class="caption-sm" x="505" y="156" text-anchor="middle">convert() / load_mapping()</text>
 
-          <!-- run_scenario.py -> convert(): textとmapping.yamlのPath、両方を1本にまとめて渡す -->
+          <!-- run_scenario.py -> convert(): scenario textだけを渡す（mapping.yamlのPathは渡さない） -->
           <line class="flow" x1="170" y1="145" x2="430" y2="145" marker-end="url(#arrow)" />
           <text class="label" x="300" y="132" text-anchor="middle">scenario text</text>
-          <text class="label" x="300" y="168" text-anchor="middle">mapping.yamlのPath</text>
 
-          <!-- mapping.yaml -> convert(): 実際に開いて読むのはconverter.py側（load_mapping()） -->
+          <!-- mapping.yaml -> convert(): converter.py自身が既定パスで直接読む。testexecutorは無関係 -->
           <line class="flow" x1="370" y1="227" x2="430" y2="165" marker-end="url(#arrow)" />
-          <text class="label" x="392" y="212" text-anchor="middle">load_mapping()が読む</text>
+          <text class="label" x="392" y="205" text-anchor="middle">load_mapping()が</text>
+          <text class="label" x="392" y="216" text-anchor="middle">既定パスで自分で読む</text>
 
           <!-- arrow: convert() -> gate -->
           <line class="flow" x1="580" y1="145" x2="582" y2="145" marker-end="url(#arrow)" />
@@ -370,9 +370,10 @@
 
           <!-- GenericOrchestrator.execute() -->
           <rect class="node" x="680" y="112" width="190" height="66" rx="3" />
-          <text class="filename" x="775" y="136" text-anchor="middle">orchestrator.py</text>
-          <text class="caption-sm" x="775" y="151" text-anchor="middle">execute() が1ステップずつ実行</text>
-          <text class="caption-sm" x="775" y="163" text-anchor="middle">結果を context に記録</text>
+          <text class="filename" x="775" y="132" text-anchor="middle">orchestrator.py</text>
+          <text class="caption-sm" x="775" y="146" text-anchor="middle">execute() はメモリ上のpipelineを</text>
+          <text class="caption-sm" x="775" y="157" text-anchor="middle">直接実行（YAMLは読まない）</text>
+          <text class="caption-sm" x="775" y="168" text-anchor="middle">結果を context に記録</text>
 
           <!-- arrow: orchestrator -> adapter -->
           <line class="flow" x1="870" y1="145" x2="900" y2="145" marker-end="url(#arrow)" />
@@ -395,7 +396,7 @@
           <text class="caption-sm" x="1235" y="161" text-anchor="middle">logs/ ─ 実行ログ</text>
         </svg>
       </div>
-      <figcaption><code>run_scenario.py</code>がシナリオを直接読み込み、そのテキストと mapping.yaml の Path の両方を converter.py へ渡す。mapping.yaml の中身は converter.py の load_mapping() が自分で開いて読む。converter.py で両者を合流させて実行計画（pipeline）を作る。GenericOrchestrator は実行前に registry で全ステップを検証し、1つでも不正なら何も実行せず止まる。通れば CameraAdapter が実機を動かし、結果は testexecutor 配下に残る。</figcaption>
+      <figcaption><code>run_scenario.py</code>がシナリオを直接読み込み、そのテキストだけを converter.py へ渡す。mapping.yaml は converter.py 自身が既定パスで直接読む（testexecutor は mapping.yaml の存在を知らない）。converter.py で両者を合流させて steps 形式の実行計画（pipeline）を作る。GenericOrchestrator は実行前に registry で全ステップを検証し、1つでも不正なら何も実行せず止まる。<code>execute()</code> はメモリ上の pipeline をそのまま実行し、YAML ファイルは読まない。通れば CameraAdapter が実機を動かし、結果は testexecutor 配下に残る。</figcaption>
     </figure>
   </section>
 
@@ -405,7 +406,7 @@
 
       <div class="pkg">
         <div class="pkg-head">normalizer/</div>
-        <div class="pkg-row"><span class="path">config/mapping.yaml</span><span class="desc">PlantUMLのラベル → adapter/action/params の変換ルール</span></div>
+        <div class="pkg-row"><span class="path">config/mapping.yaml</span><span class="desc">PlantUMLのラベル → adapter/action/params の変換ルール。converter.pyが既定パスで自分で読む（testexecutorは知らない）</span></div>
         <div class="pkg-row"><span class="path">src/normalizer/converter.py</span><span class="desc">convert() / load_mapping()。ファイルを読み書きしない純粋関数</span></div>
       </div>
 
@@ -419,7 +420,7 @@
       <div class="pkg">
         <div class="pkg-head">adapters/</div>
         <div class="pkg-row"><span class="path">core/</span><span class="desc">BaseAdapter。全Adapter共通の契約(setup/execute_step/teardown)</span></div>
-        <div class="pkg-row"><span class="path">usb_camera_adapter/</span><span class="desc">CameraAdapter / CameraController。別GitHubリポジトリで管理</span></div>
+        <div class="pkg-row"><span class="path">usb_camera_adapter/</span><span class="desc">CameraAdapter / CameraController。actionは capture / check_status。別GitHubリポジトリで管理</span></div>
       </div>
 
       <div class="pkg">
@@ -437,8 +438,8 @@
     <div class="stats">
       <div class="stat"><span class="n done">0–7</span><span class="l">ロードマップ Step 完了</span></div>
       <div class="stat"><span class="n done">4</span><span class="l">必須課題 解消済み</span></div>
-      <div class="stat"><span class="n open">7</span><span class="l">実装・設計の残課題</span></div>
-      <div class="stat"><span class="n open">3</span><span class="l">learning/ の記録</span></div>
+      <div class="stat"><span class="n done">2</span><span class="l">known_issues 解消済み</span></div>
+      <div class="stat"><span class="n open">8</span><span class="l">known_issues 残課題</span></div>
     </div>
   </section>
 
