@@ -125,7 +125,6 @@ dependencies = [
     { name = "adapter-core" },
     { name = "loguru" },
     { name = "pyyaml" },
-    { name = "usb-camera-adapter" },
 ]
 
 [package.dev-dependencies]
@@ -138,7 +137,6 @@ requires-dist = [
     { name = "adapter-core", editable = "adapters/core" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "pyyaml", specifier = ">=6.0.3" },
-    { name = "usb-camera-adapter", editable = "adapters/usb_camera_adapter" },
 ]
 
 [package.metadata.requires-dev]

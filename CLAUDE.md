@@ -54,6 +54,8 @@
 
 ## 現在の進捗
 ・完了：Step0〜7＋必須課題4件（正規実行入口testexecutor/run_scenario.py／GenericOrchestrator実機検証／LED二重チェック修正／撮影画像とログの永続化、全て実機確認済み）
-・実施中：なし（必須タスクは全て完了）
-・次のタスク：3分類の残課題（01_docs/known_issues.md=実装設計／01_docs/learning/=スキルアップ／01_docs/ai_workflow/=AI協働プロセス）を相談
+・完了：既存コード解説シリーズ①〜⑤（TestExecutor/Orchestrator/Normalizer/Adapter(省略)/IntegrationTest）
+・完了：known_issues.md No.1（params二重役割→steps形式統一）・No.7（デモ用Orchestrator重複→check_statusアクション移植の上で削除）、全て実機確認済み
+・実施中：なし
+・次のタスク：known_issues.mdの残り（No.2〜6,8〜10）、またはlearning/・ai_workflow/の残課題を相談
 ・詳細：01_docs/implementation_plan.md 参照

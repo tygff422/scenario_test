@@ -5,22 +5,12 @@
 
 ## 収録クラス
 
-`src/orchestrator/orchestrator.py`に、性格の異なる2つのクラスが同居している。
+`src/orchestrator/orchestrator.py`には`GenericOrchestrator`のみを置いている
+（2026-08-30、[01_docs/decisions/19_orchestrator_demo_class_removal.md](../01_docs/decisions/19_orchestrator_demo_class_removal.md)参照）。
 
-### `Orchestrator`（デモ用の具体クラス）
-
-`CameraAdapter`を名指しでハードコードした、動作確認用の最小実装。
-
-```python
-from orchestrator.orchestrator import Orchestrator
-from camera_adapter.camera_adapter import CameraAdapter
-
-orchestrator = Orchestrator(adapter=CameraAdapter())
-result = orchestrator.execute()  # デバイス状態を1回チェックしてbool を返す
-```
-
-`with adapter:`でAdapterのコンテキスト管理に入り、`check_device_status()`が`"READY"`を返せば`True`。
-例外発生時もキャッチしてlogに残し`False`を返す。
+以前は`CameraAdapter`をハードコードしたデモ用`Orchestrator`クラスも同居していたが、
+そのクラスにしか無かった「デバイスのLED点灯確認」機能を`CameraAdapter.execute_step()`の
+`check_status`アクションとして`GenericOrchestrator`経由で使えるように移植した上で削除した。
 
 ### `GenericOrchestrator`（YAML駆動の汎用実装）
 
@@ -119,7 +109,6 @@ pipeline:
 pytest orchestrator/tests -m "not hardware"
 ```
 
-- `test_orchestrator.py`：`Orchestrator`をMagicMockで検証（正常系/異常系/例外系）
 - `test_generic_orchestrator.py`：`GenericOrchestrator`を`tests/orchestrator_test_support/fake_pipeline_adapter.py`の
   `FakePipelineAdapter`（`BaseAdapter`実装のFake）で検証。実機なしでパイプライン全体の配線
   （動的import → setup → execute_step → teardown、および各失敗パターン）を確認する
@@ -140,5 +129,6 @@ pytest orchestrator/tests -m "not hardware"
 
 詳細な設計判断・依存の理由は[01_docs/decisions/](../01_docs/decisions/)を参照。
 
-- `adapter-core`：`GenericOrchestrator`が`BaseAdapter`として利用（抽象への依存）
-- `usb-camera-adapter`：`Orchestrator`が`CameraAdapter`を直接利用（具体への依存）
+- `adapter-core`：`GenericOrchestrator`が`BaseAdapter`として利用（抽象への依存のみ）
+  `Orchestrator`削除に伴い、`usb-camera-adapter`（具体パッケージ）への依存は無くなった
+  （[19](../01_docs/decisions/19_orchestrator_demo_class_removal.md)）

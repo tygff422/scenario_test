@@ -1,32 +1,4 @@
 from loguru import logger
-
-
-class Orchestrator:
-    def __init__(self, adapter=None):
-        if adapter is None:
-            from camera_adapter.camera_adapter import CameraAdapter
-            self.adapter = CameraAdapter()
-        else:
-            self.adapter = adapter
-    
-    def execute(self) -> bool:
-        logger.info("デバイスの検査を開始")
-        try:
-            with self.adapter as adapter:
-                status = adapter.check_device_status()
-                logger.info(f"検査結果: {status}")
-
-                if status == "READY":
-                    return True
-                else:
-                    logger.error("デバイスの準備ができてないから、処理を中断...")
-                    return False
-        except Exception as e:
-            logger.exception(f"Error発生")
-            return False
-
-
-from loguru import logger
 import yaml
 
 from adapter_core.baseadapter import BaseAdapter

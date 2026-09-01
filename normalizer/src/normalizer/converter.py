@@ -38,6 +38,11 @@ def convert(
 
     ファイルは一切読み書きしない純粋関数。変換ルール（lifecycle_labels/action_mapping）は
     呼び出し側がload_mapping()等で用意して渡す。YAMLへの書き出しも呼び出し側の責務。
+
+    出力は常にsteps形式（01_docs/known_issues.md No.1対応）。トップレベルのparamsは
+    コンストラクタ専用、steps[].paramsはexecute_step専用に分離され、1つのparamsが
+    2つの意味を兼ねる曖昧さが構造的に無くなる（GenericOrchestrator側は従来形式も
+    後方互換で読めるが、convert()はもう出力しない）。
     """
     pipeline: list[dict] = []
 
@@ -55,8 +60,14 @@ def convert(
         if label not in action_mapping:
             raise ValueError(f"未対応のステップです: {label}")
 
-        step = dict(action_mapping[label])
-        step["name"] = label
-        pipeline.append(step)
+        entry = action_mapping[label]
+        pipeline.append({
+            "name": label,
+            "adapter": entry["adapter"],
+            "params": {},
+            "steps": [
+                {"action": entry["action"], "params": entry.get("params", {})}
+            ],
+        })
 
     return pipeline

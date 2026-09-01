@@ -153,6 +153,8 @@ Step 7  最終統合・リファクタリング（学習計画Phase9相当） �
   （[12](decisions/12_essential_gaps_found.md)）
 - 撮影画像・ログの永続化仕様の決定と実装（[13](decisions/13_log_and_artifact_storage_gap.md)）
 - 実行ファイル・ログ・成果物を`testexecutor/`フォルダへ集約（[14](decisions/14_testexecutor_folder.md)）
+- `known_issues.md` No.1（`params`二重役割）：`converter.py`が常に`steps`形式で出力するよう統一（[06](decisions/06_workflow_yaml_usage.md)7節）
+- `known_issues.md` No.7（デモ用`Orchestrator`重複）：`check_status`アクションへ機能移植の上で`Orchestrator`削除（[19](decisions/19_orchestrator_demo_class_removal.md)）
 
 ## 現時点で残っている未完了タスク
 

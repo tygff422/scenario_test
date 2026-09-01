@@ -133,3 +133,23 @@ with adapter:                  # setup() は1回だけ
 エラー時の挙動は5節と同じ：`steps`内のどこかで例外が発生すると、その時点で残りの`steps`は実行されずに`with`を抜ける（＝`teardown()`は呼ばれる）。パイプライン全体もそこで中断する。
 
 実装：`orchestrator/src/orchestrator/orchestrator.py`の`GenericOrchestrator.execute()`。テスト：`orchestrator/tests/test_generic_orchestrator.py`。
+
+## 7. `normalizer.converter.convert()`は常にsteps形式で出力する（2026-09-01追記、[known_issues.md](../known_issues.md) No.1対応）
+
+2節で説明した「`params`がコンストラクタ用とexecute_step用を兼ねる」曖昧さは、`convert()`が従来形式（`action`/`params`をトップレベルに直接書く形）を出力していたために残っていた。`convert()`を、`action_mapping`のエントリを常に`steps`形式へ変換して出力するよう変更した：
+
+```python
+# convert()の出力（変更後）：常にsteps形式
+{
+    "name": "カメラ画像撮影",
+    "adapter": "camera_adapter.camera_adapter.CameraAdapter",
+    "params": {},                                              # コンストラクタ専用（今は空）
+    "steps": [
+        {"action": "capture", "params": {"resolution": [640, 480]}}  # execute_step専用
+    ],
+}
+```
+
+`GenericOrchestrator.execute()`自体は変更していない（従来形式・`steps`形式どちらも引き続き受け付ける後方互換のまま）。変わったのは`convert()`が**もう従来形式を出力しない**という点のみ。`mapping.yaml`（`action_mapping`）自体の書式（`adapter`/`action`/`params`のフラットな形）も変更していない——変換後の出力側だけをsteps形式に統一した。
+
+`testexecutor/run_scenario.py`の`_inject_img_dir()`も、トップレベルの`action`ではなく`steps[].action`を見るように追従修正した（`img_dir`はコンストラクタ用の値なので、注入先はトップレベルの`params`のままで正しい）。

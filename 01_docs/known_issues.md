@@ -6,11 +6,10 @@
 
 ## 1. `params`の二重役割仕様
 
-- [ ] 未対応
-- **決まってること**：従来形式（1要素=1アクション）は後方互換のため維持。`steps`形式では既に分離済み（[06](decisions/06_workflow_yaml_usage.md)）
-- **決まってないこと**：従来形式をいつか廃止するか、常に`steps`形式に統一するか
-- **問題点**：同じ`params`キーが「コンストラクタ用」と「execute_step用」の2つの意味を持つ。ドキュメントを読まないと気づけない暗黙知
-- **改善案**：a) `converter.py`が常に`steps`形式で出力するよう統一し、従来形式を段階的に非推奨化　b) 現状維持（実害が出るまで様子見）
+- [x] 対応済み（2026-09-01）
+- **決まってること（最終）**：`normalizer.converter.convert()`が常に`steps`形式で出力するよう変更（改善案a採用）。`GenericOrchestrator`自体は従来形式も引き続き受け付ける後方互換のまま（`mapping.yaml`の書式も変更なし、変換後の出力だけをsteps形式に統一）
+- **問題点（解消済み）**：同じ`params`キーが「コンストラクタ用」と「execute_step用」の2つの意味を持っていた点は、`convert()`の出力が常に分離された形になったことで実質解消
+- 詳細：[06_workflow_yaml_usage.md 7節](decisions/06_workflow_yaml_usage.md)
 
 ## 2. テスト範囲が薄い
 
@@ -54,11 +53,10 @@
 
 ## 7. デモ用`Orchestrator`と`GenericOrchestrator`の役割重複
 
-- [ ] 未対応
-- **決まってること**：両方残す方針（Step5で「対象外のまま維持」と明記済み）
-- **決まってないこと**：最終的にどうするか
-- **問題点**：実質`GenericOrchestrator`が上位互換なのに、名前が紛らわしい`Orchestrator`が並存し続けてる
-- **改善案**：a) `DemoOrchestrator`等に改名し役割を明確化　b) docstringで「本線は`GenericOrchestrator`」と明記　c) 思い切って削除（git historyに残るので復元可能）
+- [x] 対応済み（2026-09-01）
+- **決まってること（最終）**：`Orchestrator`を削除（改善案c採用）。ただし削除前に、`Orchestrator`にしか無かった機能（LED点灯確認`check_device_status()`）を`CameraAdapter.execute_step()`の`check_status`アクションとして`GenericOrchestrator`経由で使えるように移植してから削除した（機能自体は失っていない）
+- **問題点（解消済み）**：`orchestrator/pyproject.toml`が`usb-camera-adapter`に依存していた原因も`Orchestrator`だったため、削除に伴いこの依存も解消。`orchestrator`パッケージが名実ともに`adapter-core`（抽象）のみに依存する形になった
+- 詳細：[19_orchestrator_demo_class_removal.md](decisions/19_orchestrator_demo_class_removal.md)
 
 ## 8. `decisions/`が17件になっていて索引が無い
 
@@ -79,7 +77,7 @@
 ## 10. `CameraAdapter`が2つのAPIを持っている
 
 - [ ] 未対応
-- **決まってること**：`execute_step()`経由（`GenericOrchestrator`の本線）と、`open()`/`capture()`/`release()`等の直接メソッド（デモ用`Orchestrator`・一部テストが使用）が並存している
-- **決まってないこと**：どちらを正とするか、直接メソッド群を整理するか
-- **問題点**：7番（デモ用Orchestratorの重複）と根が同じ。同じ機能に到達する経路が2つあり、どちらが「正式」か分かりにくい
-- **改善案**：7番の対応方針が決まったタイミングで合わせて整理する
+- **決まってること**：`execute_step()`経由（`GenericOrchestrator`の本線）が正式な経路。7番の対応（[19](decisions/19_orchestrator_demo_class_removal.md)）で、デモ用`Orchestrator`という「利用者の1つ」は無くなった
+- **決まってないこと**：`open()`/`capture()`/`release()`/`is_led_on()`等の直接メソッド群（今も`adapters/usb_camera_adapter/tests/test_camera_adapter.py`が単体テストとして使用中）を整理するか、このまま残すか
+- **問題点**：7番の重複は解消したが、直接メソッド群自体はまだ`CameraAdapter`に残っている。同じ機能に到達する経路が2つある状態は継続中
+- **改善案**：a) 直接メソッド群を`CameraController`のテストで代替できないか検討し、`CameraAdapter`からは削除　b) 現状維持（実害は無いので優先度低）

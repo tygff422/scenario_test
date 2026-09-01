@@ -61,14 +61,14 @@ start
 stop
 @enduml
 """
-    # ① PlantUML -> pipeline（list[dict]）変換
+    # ① PlantUML -> pipeline（list[dict]）変換（出力は常にsteps形式、01_docs/known_issues.md No.1対応）
     pipeline = convert(plantuml_text, LIFECYCLE_LABELS, ACTION_MAPPING)
     assert pipeline == [
         {
             "name": "センサー計測",
             "adapter": "test_plantuml_to_execution.FakeSensorAdapter",
-            "action": "measure",
             "params": {},
+            "steps": [{"action": "measure", "params": {}}],
         }
     ]
 

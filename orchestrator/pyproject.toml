@@ -9,7 +9,6 @@ requires-python = "~=3.11.0"
 dependencies = [
     "loguru>=0.7.3",
     "pyyaml>=6.0.3",
-    "usb-camera-adapter",
     "adapter-core",
 ]
 
@@ -22,5 +21,4 @@ dev = [
 packages = ["src/orchestrator"]
 
 [tool.uv.sources]
-usb-camera-adapter = { workspace = true }
 adapter-core = { workspace = true }

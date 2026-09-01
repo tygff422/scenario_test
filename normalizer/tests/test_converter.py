@@ -28,12 +28,15 @@ stop
 """
     result = convert(plantuml_text, LIFECYCLE_LABELS, ACTION_MAPPING)
 
+    # 出力は常にsteps形式（01_docs/known_issues.md No.1対応）
     assert result == [
         {
             "name": "カメラ画像撮影",
             "adapter": "camera_adapter.camera_adapter.CameraAdapter",
-            "action": "capture",
-            "params": {"resolution": [640, 480]},
+            "params": {},
+            "steps": [
+                {"action": "capture", "params": {"resolution": [640, 480]}}
+            ],
         }
     ]
 
@@ -129,4 +132,4 @@ stop
 """
     result = convert(plantuml_text, lifecycle_labels, action_mapping)
     assert len(result) == 1
-    assert result[0]["action"] == "capture"
+    assert result[0]["steps"][0]["action"] == "capture"
