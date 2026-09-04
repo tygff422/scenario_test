@@ -72,8 +72,7 @@
 
 ## 10. `CameraAdapter`が2つのAPIを持っている
 
-- [ ] 未対応
-- **決まってること**：`execute_step()`経由（`GenericOrchestrator`の本線）が正式な経路。7番の対応（[19](decisions/19_orchestrator_demo_class_removal.md)）で、デモ用`Orchestrator`という「利用者の1つ」は無くなった
-- **決まってないこと**：`open()`/`capture()`/`release()`/`is_led_on()`等の直接メソッド群（今も`adapters/usb_camera_adapter/tests/test_camera_adapter.py`が単体テストとして使用中）を整理するか、このまま残すか
-- **問題点**：7番の重複は解消したが、直接メソッド群自体はまだ`CameraAdapter`に残っている。同じ機能に到達する経路が2つある状態は継続中
-- **改善案**：a) 直接メソッド群を`CameraController`のテストで代替できないか検討し、`CameraAdapter`からは削除　b) 現状維持（実害は無いので優先度低）
+- [x] 対応済み（2026-09-04）
+- **決まってること（最終）**：`CameraAdapter`の直接メソッド群（`open()`/`release()`/`is_opened()`/`capture()`/`save_capture()`/`is_led_on()`）を削除（改善案a採用）。`setup()`内の`self.open()`は`self.camera_controller.open()`に変更。正式な入口は`execute_step()`のみになった
+- **問題点（解消済み）**：`test_camera_adapter.py`をFake（`CameraMockController`）＋`execute_step()`経由の検証に書き換え。実機テスト・本番経路（`run_scenario.py`）とも回帰なしを確認
+- 詳細：`adapters/usb_camera_adapter`（別リポジトリ）の該当commit。`check_device_status()`は`execute_step("check_status")`の内部実装として存続
