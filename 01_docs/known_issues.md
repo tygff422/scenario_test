@@ -60,19 +60,15 @@
 
 ## 8. `decisions/`が17件になっていて索引が無い
 
-- [ ] 未対応
-- **決まってること**：無し（番号順に並んでいるだけ）
-- **決まってないこと**：索引を作るかどうか、作るならどの粒度で（1行タイトルのみ／概要付き）
-- **問題点**：後から見返す時に、どのdecisionに何が書いてあるか一覧できない
-- **改善案**：`01_docs/decisions/README.md`として、番号・タイトル・1行概要の一覧を作る
+- [x] 対応済み（2026-09-04）
+- **決まってること（最終）**：`01_docs/decisions/README.md`を新規作成。番号・タイトル・1行概要の表に加え、後から訂正・再移動された記録（01/02、04、06、07、16→18）を補足として明記した
+- 詳細：[decisions/README.md](decisions/README.md)
 
 ## 9. `_summarize_result()`/`_summarize()`の重複
 
-- [ ] 未対応
-- **決まってること**：`orchestrator.py`の`_summarize_result()`と`run_scenario.py`の`_summarize()`が、ほぼ同じロジック（numpy配列を`<array shape=...>`に要約）を別々に持っている
-- **決まってないこと**：共通化するか、このまま許容するか
-- **問題点**：片方だけ修正して片方を直し忘れる、というズレが将来起きうる
-- **改善案**：`adapter_core`等、両方から参照できる場所に共通関数として切り出す
+- [x] 対応済み（2026-09-04）
+- **決まってること（最終）**：`adapter_core`に共通関数`summarize_result()`を切り出し（改善案採用）。`orchestrator.py`の`_summarize_result()`と`run_scenario.py`の`_summarize()`を削除し、両方が`adapter_core.logging_utils.summarize_result`を呼ぶ形に統一
+- 詳細：新規`adapters/core/src/adapter_core/logging_utils.py`
 
 ## 10. `CameraAdapter`が2つのAPIを持っている
 

@@ -16,6 +16,7 @@ import sys
 
 from loguru import logger
 
+from adapter_core.logging_utils import summarize_result
 from normalizer.converter import convert, load_mapping
 from orchestrator.orchestrator import GenericOrchestrator
 
@@ -53,20 +54,9 @@ async def run() -> bool:
     result = await orchestrator.execute(pipeline)
 
     for entry in orchestrator.context.history:
-        logger.info(f"[実行結果] {entry.name} / {entry.action} / {_summarize(entry.result)}")
+        logger.info(f"[実行結果] {entry.name} / {entry.action} / {summarize_result(entry.result)}")
 
     return result
-
-
-def _summarize(result: dict) -> dict:
-    """ログ出力用に、frame等の巨大な値を要約する（numpy配列の中身をそのまま出さない）"""
-    summary = {}
-    for key, value in result.items():
-        if hasattr(value, "shape"):
-            summary[key] = f"<array shape={value.shape}>"
-        else:
-            summary[key] = value
-    return summary
 
 
 if __name__ == "__main__":
