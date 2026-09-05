@@ -11,6 +11,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "pytest>=9.1.1",
+    "pytest-cov>=7.0.0",
 ]
 
 [tool.uv]
@@ -33,3 +34,9 @@ normalizer = { workspace = true }
 markers = [
     "hardware: 実機USBカメラが必要なテスト（デフォルトでは除外: -m \"not hardware\"）",
 ]
+
+# カバレッジ計測対象（01_docs/known_issues.md No.2対応）。常時は測らず、
+# `uv run pytest -m "not hardware" --cov --cov-report=term-missing`のように
+# 明示的に--covを付けた時だけ計測される（addoptsには入れていない）。
+[tool.coverage.run]
+source = ["orchestrator", "normalizer", "adapter_core", "camera_adapter", "camera_controller"]

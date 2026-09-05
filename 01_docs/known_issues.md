@@ -13,11 +13,11 @@
 
 ## 2. テスト範囲が薄い
 
-- [ ] 未対応
-- **決まってること**：Fakeベースの単体テスト、hardwareマーカー分離は機能済み
-- **決まってないこと**：カバレッジ目標、`CameraController`自体のテスト方針、複数シナリオE2Eをいつやるか
-- **問題点**：実証されてるのは「撮影1パターン」のみ。`steps`形式・複数Adapter連携は理論上動くだけ。`CameraController`は自動テストゼロ（`test_camera_controller.py`は手動実行スクリプト）
-- **改善案**：a) pytest-cov導入で可視化　b) `_make_img_path`等の純粋ロジック部分だけでも単体テスト化　c) mapping.yamlに2つ目のシナリオ（Audio等）を足して複数Adapter連携を実証
+- [ ] 一部対応（2026-09-05、a・b実施済み。cは検討中）
+- **決まってること**：Fakeベースの単体テスト、hardwareマーカー分離は機能済み。a) `pytest-cov`導入済み（`uv run pytest -m "not hardware" --cov --cov-report=term-missing`で計測可能）。b) `test_camera_controller_logic.py`を新規作成し、`_make_img_path`/`save_capture`/`save_roi_capture`/`is_led_on`の実機不要な分岐を単体テスト化（新規7件）
+- **決まってないこと**：カバレッジ目標の数値化、複数シナリオE2Eをいつ・どういう形でやるか（c、次回相談）
+- **問題点（一部解消）**：カバレッジ計測導入前は`camera_controller.py`が0%だったが、bの追加で26%→56%まで改善（全体は85%→90%）。`steps`形式・複数Adapter連携は依然として理論上動くだけで未実証（cで対応予定）
+- **改善案**：c) mapping.yamlに2つ目のシナリオ（Audio等）を足して複数Adapter連携を実証——学習計画Phase9（新Adapter作り切る経験）と合わせて次回検討
 
 ## 3. CI・静的解析が無い
 

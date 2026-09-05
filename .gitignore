@@ -9,6 +9,10 @@ wheels/
 # Virtual environments
 .venv
 
+# pytest-cov実行時に生成されるカバレッジデータ（01_docs/known_issues.md No.2対応）
+.coverage
+htmlcov/
+
 # testexecutor/run_scenario.py実行時に生成される成果物（ログ・撮影画像）
 testexecutor/logs/
 testexecutor/img/
