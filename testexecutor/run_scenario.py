@@ -14,6 +14,12 @@ paths.py、ログ設定はlogging_setup.pyに切り出してある（2026-08-29 
 import asyncio
 import sys
 
+# Windows Terminalでのコンソール表示文字化け対策（01_docs/known_issues.md No.5対応）。
+# ログファイル自体はUTF-8で正常なので、これは表示だけの問題。loguruの既定シンクは
+# sys.stderr（sys.stdoutではない）なので、両方をUTF-8に固定しておく。
+sys.stdout.reconfigure(encoding="utf-8")
+sys.stderr.reconfigure(encoding="utf-8")
+
 from loguru import logger
 
 from adapter_core.logging_utils import summarize_result

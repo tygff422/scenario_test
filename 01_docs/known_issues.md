@@ -37,19 +37,15 @@
 
 ## 5. コンソール表示の文字化け
 
-- [ ] 未対応
-- **決まってること**：ログファイル自体はUTF-8で正常。表示だけの問題と特定済み
-- **決まってないこと**：直すかどうか
-- **問題点**：Windows Terminalのcodepage起因で読みづらい
-- **改善案**：a) `run_scenario.py`冒頭で`sys.stdout.reconfigure(encoding="utf-8")`　b) 無視してよい（実害はログファイルには無い）
+- [x] 対応済み（2026-09-05）
+- **決まってること（最終）**：`run_scenario.py`冒頭で`sys.stdout`/`sys.stderr`両方を`reconfigure(encoding="utf-8")`（改善案a採用、ただし当初案の`sys.stdout`のみでは不十分と判明——loguruの既定シンクは`sys.stderr`のため、両方の固定が必要だった）
+- 詳細：`testexecutor/run_scenario.py`冒頭
 
 ## 6. 2リポジトリ構成の運用リスク
 
-- [ ] 未対応
-- **決まってること**：`usb_camera_adapter`は別リポジトリのまま維持（元々別プロジェクトだった経緯を尊重）
-- **決まってないこと**：このリスクをどう構造的に緩和するか
-- **問題点**：cross-cutting変更のたびに2回コミットが要り、片方忘れる事故が**実際に発生済み**（`Readme.md`リネームの件、[07](decisions/07_folder_structure_cleanup.md)の訂正参照）
-- **改善案**：a) 「〇〇を触ったら別リポジトリ側も確認する」をチェックリスト化する運用ルール　b) 将来的な統合（1モノレポ化）も選択肢だが未決定
+- [x] 対応済み（2026-09-05）
+- **決まってること（最終）**：「`usb_camera_adapter`配下を触ったら、そのリポジトリでも独立してcommit・pushする」という運用ルールを`CLAUDE.md`にチェックリスト化（改善案a採用）。モノレポ統合（改善案b）は見送り
+- 詳細：[CLAUDE.md「2リポジトリ構成の運用ルール」](../CLAUDE.md)
 
 ## 7. デモ用`Orchestrator`と`GenericOrchestrator`の役割重複
 

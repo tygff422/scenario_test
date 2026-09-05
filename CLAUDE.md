@@ -3,6 +3,14 @@
 - **git push・GitHub操作を含む**: `git commit`/`git push`等のコマンドも上記に含まれる。都度「pushして良い？」等の確認は不要。実行後に結果を報告すればよい。
 - **例外：実装作業は下記「実装作業の説明順序」に従う**：新機能追加・修正等、実装コードを伴う作業は、この自律実行方針の対象外とする。単純なコマンド実行・テスト実行・git commit/push（実装が完了した後の後始末）はこれまで通り確認不要。
 
+# 2リポジトリ構成の運用ルール（2026-09-05追加）
+
+このプロジェクトは2つの独立したgitリポジトリで構成されている：ルート（`scenario_test`）と、`.gitignore`で除外されている`adapters/usb_camera_adapter/`（`UsbCameraController`という別リポジトリ）。cross-cutting変更（両方に影響する変更）で片方のコミットを忘れる事故が過去に実際発生した（[01_docs/decisions/07](01_docs/decisions/07_folder_structure_cleanup.md)訂正・[01_docs/known_issues.md](01_docs/known_issues.md) No.6参照）。
+
+- **`adapters/usb_camera_adapter/`配下のファイルを1つでも変更したら、その変更は必ず`adapters/usb_camera_adapter/`自身のgit（`cd adapters/usb_camera_adapter && git status`）でも確認し、そちらでも独立してcommit・pushする**（ルートリポジトリのcommitには含まれないため）
+- 逆に、ルート側だけの変更（`01_docs/`・`orchestrator/`・`normalizer/`・`testexecutor/`等）は通常通りルートでcommitすれば良い
+- 両方に影響する変更（例：Adapterの契約を変えて`orchestrator`側も追従修正する等）をした場合は、**2回に分けてcommit・pushし、両方完了したことを報告する**
+
 # 実装作業の説明順序（2026-08-22追加、2026-08-22改訂）
 
 **目的は「最速の実装」ではなく「納得と理解の実装」**。到達基準は「誰がタイピングしたか」ではなく、**実装内容の設計意図・方針・内容を利用者が自分の言葉で説明できるレベルで理解していること**。対象はAdapter/Controllerに限らず、TestExecutor・Orchestrator・normalizer・ログ/成果物管理等、触る**全階層**が対象。
