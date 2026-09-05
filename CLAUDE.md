@@ -63,7 +63,9 @@
 ## 現在の進捗
 ・完了：Step0〜7＋必須課題4件（正規実行入口testexecutor/run_scenario.py／GenericOrchestrator実機検証／LED二重チェック修正／撮影画像とログの永続化、全て実機確認済み）
 ・完了：既存コード解説シリーズ①〜⑤（TestExecutor/Orchestrator/Normalizer/Adapter(省略)/IntegrationTest）
-・完了：known_issues.md No.1（params二重役割→steps形式統一）・No.7（デモ用Orchestrator重複→check_statusアクション移植の上で削除）、全て実機確認済み
+・完了：known_issues.md No.1・5・6・7・8・9・10（params二重役割→steps形式統一／文字化け解消／2リポジトリ運用ルール策定／デモ用Orchestrator重複→check_statusアクション移植の上で削除／decisions索引作成／_summarize重複解消／CameraAdapterの2API解消）、全て実機確認済み
+・一部対応：known_issues.md No.2（テスト範囲が薄い）——a) pytest-cov導入　b) 純粋ロジック部分の単体テスト化　は完了。c) 複数Adapter連携の実証（新Adapter追加）は次回設計から相談
+・保留：known_issues.md No.3（CI・静的解析、ruff導入への懸念で保留）・No.4（ログローテーション、明示的に後回し）
 ・実施中：なし
-・次のタスク：known_issues.mdの残り（No.2〜6,8〜10）、またはlearning/・ai_workflow/の残課題を相談
-・詳細：01_docs/implementation_plan.md 参照
+・次のタスク：No.2-c（新Adapter追加案）を相談、その後learning/・ai_workflow/の残課題へ
+・詳細：01_docs/known_issues.md、01_docs/implementation_plan.md 参照
